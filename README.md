@@ -16,13 +16,22 @@ npm run preview
 
 Build produksi menghasilkan aplikasi dan service worker di `dist/`. Gunakan preview produksi untuk menguji mode offline. PocketPulse dibuka dengan data contoh. Buka Pengaturan dan pilih **Mulai ruang pribadi** untuk menggantinya dengan catatan kosong.
 
-## Penyimpanan, Supabase, dan Vercel
+## Penyimpanan dan Supabase
 
 Versi ini menyimpan data dalam IndexedDB di perangkat dan menyediakan CSV serta backup JSON. Logika uang dan periode ada di `src/domain`. Pembacaan dan penulisan data berada di `src/storage`.
 
-Vercel dapat menyajikan build ini memakai preset **Vite**, perintah `npm run build`, dan folder hasil `dist`. Rute aplikasi memakai hash sehingga navigasi tidak bergantung pada aturan rewrite. Gunakan domain HTTPS yang stabil supaya pemasangan PWA dan data lokal menggunakan origin yang sama.
+Build tanpa variabel Supabase berjalan dengan penyimpanan lokal dan data contoh. Untuk menguji Supabase di lingkungan dev:
 
-Supabase direncanakan untuk login serta penyimpanan lintas perangkat. Tahap tersebut perlu Supabase Auth, tabel dengan Row Level Security berdasarkan pemilik, dan strategi sinkronisasi yang menjaga perubahan offline, termasuk penghapusan dan konflik. Integrasi browser akan memakai URL proyek dan publishable key. Kunci secret atau service role hanya boleh dipakai di server. Versi ini berjalan tanpa konfigurasi Supabase.
+1. Terapkan [migrasi database](supabase/migrations/20261126000100_create_ledgers.sql) pada proyek dev. RLS membatasi akses snapshot ke akun pemilik.
+2. Buat akun uji di Supabase Auth. Form PocketPulse memakai email dan kata sandi. Aplikasi tidak menampilkan alur daftar pengguna.
+3. Salin `.env.example` ke `.env.local`, lalu isi URL proyek dan publishable key. Kredensial database dan service role disimpan di sisi pengelolaan Supabase.
+4. Masuk ke PocketPulse. Di Pengaturan pilih **Sinkronkan**. Perangkat baru dengan catatan kosong dapat menarik versi cloud. Jika kedua sisi berubah, ekspor kedua versi sebelum menentukan data yang dipulihkan.
+
+Catatan lokal untuk mode Supabase dipisahkan berdasarkan akun. Jika ingin memindahkan catatan dari mode lokal ke mode Supabase, unduh backup dari mode lokal lalu pulihkan dengan akun yang sesuai. Gunakan data dummy bagi pengujian.
+
+## Vercel Preview untuk pengembangan
+
+Gunakan preset **Vite**, perintah `npm run build`, dan folder hasil `dist`. Tambahkan dua variabel `VITE_SUPABASE_*` ke lingkungan **Preview**. Gunakan tautan preview dari branch dev untuk tes instalasi dan offline di HP. Saat data yang dipakai harus bertahan antarpembaruan, buka URL preview yang sama atau pulihkan backup pada URL baru. Build production bisa memakai proyek Supabase lain dan variabel **Production** tersendiri.
 
 - [Dokumentasi produk dan rencana testing](docs/README.md)
 - [Vercel untuk Vite](https://vercel.com/docs/frameworks/frontend/vite)

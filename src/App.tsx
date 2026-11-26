@@ -5,7 +5,8 @@ import { Dashboard } from './Dashboard'
 import { EditorDialog, type Change, type Editor } from './Editors'
 import { Budgets, History, Settings } from './Pages'
 import { demoLedger } from './domain/demo.ts'
-import { budgetRows, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, today, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { budgetRows, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, today, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { type CloudAccount } from './storage/cloud.ts'
 import { readLedger, updateLedger } from './storage/ledger.ts'
 
 const routes = [
@@ -23,7 +24,8 @@ function getRoute() {
   return { screen: routes.find(item => item.id === path)?.id ?? 'ringkasan', filters: new URLSearchParams(search) }
 }
 
-export function App() {
+export function App({ account }: { account?: CloudAccount }) {
+  const storageKey = account ? `cloud:${account.id}` : 'primary'
   const [day, setDay] = useState(today)
   const activeDay = useRef(day)
   const [data, setData] = useState<Ledger | null>(null)
@@ -43,7 +45,7 @@ export function App() {
   const notify = useCallback((message: string) => setToast({ message }), [])
 
   useEffect(() => {
-    readLedger().then(stored => setData(stored ?? demoLedger(today()))).catch(() => setStorageError(true))
+    readLedger(storageKey).then(stored => setData(stored ?? (account ? emptyLedger() : demoLedger(today())))).catch(() => setStorageError(true))
     function onHash() {
       setRoute(getRoute())
       window.scrollTo(0, 0)
@@ -83,7 +85,7 @@ export function App() {
       window.removeEventListener('beforeinstallprompt', beforeInstall)
       window.removeEventListener('appinstalled', onInstall)
     }
-  }, [])
+  }, [account?.id, storageKey])
 
   useEffect(() => {
     if (!toast) return
@@ -101,7 +103,7 @@ export function App() {
   }
   async function save(change: Change) {
     if (!data) throw new Error('Data masih dimuat.')
-    const updated = await updateLedger(data, change)
+    const updated = await updateLedger(data, change, storageKey)
     setData(updated)
     return updated
   }
@@ -158,7 +160,8 @@ export function App() {
           edit={item => item.kind === 'transaction' ? openTransaction(item.item) : setEditor(item)} />}
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}
           edit={setEditor} save={save} notify={notify} drillDown={drillDown} />}
-        {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed} />}
+        {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed}
+          account={account} storageKey={storageKey} />}
       </main>
       {data && <button className="quick-add" aria-label="Catat transaksi" onClick={() => openTransaction()}><Plus size={23} /></button>}
     </div>

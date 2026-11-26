@@ -252,3 +252,9 @@ p { line-height: 1.5; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; scroll-behavior: auto !important; }
 }
+
+.cloud-login { display: grid; min-height: 100dvh; place-items: center; padding: 20px; }
+.cloud-login > .panel { width: min(100%, 440px); padding: 28px; }
+.cloud-login h1 { font-size: 1.65rem; margin-block: 24px 20px; }
+.cloud-login .fields { margin-top: 16px; }
+.cloud-actions { margin-top: 16px; }

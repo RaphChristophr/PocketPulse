@@ -4,6 +4,8 @@ import { accountTypes, addDays, addMonths, budgetRows, csv, emptyLedger, periodE
 import { TransactionRow } from './Dashboard'
 import { type Commit, type Editor } from './Editors'
 import { download, Empty, Glyph, Select } from './ui'
+import { CloudSettings } from './CloudSettings'
+import type { CloudAccount } from './storage/cloud.ts'
 
 export function History({ data, filters, setFilters, edit }: {
   data: Ledger; filters: URLSearchParams; setFilters: (filters: URLSearchParams) => void; edit: (editor: Editor) => void;
@@ -131,9 +133,9 @@ export function exportRecords(data: Ledger, kind: 'transactions' | 'weekly' | 'm
   })])
 }
 
-export function Settings({ data, save, edit, notify, install, installed }: {
+export function Settings({ data, save, edit, notify, install, installed, account, storageKey }: {
   data: Ledger; save: Commit; edit: (editor: Editor) => void; notify: (message: string) => void;
-  install: (() => void) | undefined; installed: boolean;
+  install: (() => void) | undefined; installed: boolean; account?: CloudAccount; storageKey: string;
 }) {
   const upload = useRef<HTMLInputElement>(null)
   const [restoring, setRestoring] = useState(false)
@@ -160,6 +162,7 @@ export function Settings({ data, save, edit, notify, install, installed }: {
     {data.demo && <section className="demo-settings"><div><strong>Data contoh</strong><p>Coba alur PocketPulse atau mulai dengan catatan kosong.</p></div>
       <button className="button primary" onClick={() => void startPersonal()}>Mulai ruang pribadi</button></section>}
     <div className="settings-grid">
+      {account && <CloudSettings account={account} keyName={storageKey} data={data} save={save} notify={notify} />}
       <section className="panel"><div className="panel-heading"><div><h2>Sumber dana</h2><p>Bank, bank digital, dan tunai</p></div>
         <button className="button secondary" onClick={() => edit({ kind: 'account' })}><Plus size={16} /> Tambah</button></div>
         {data.accounts.length ? data.accounts.map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'account', item })}>
