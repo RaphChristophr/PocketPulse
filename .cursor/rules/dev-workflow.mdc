@@ -1,0 +1,10 @@
+---
+description: Push tiap tahap pengembangan dan perubahan PocketPulse ke branch dev.
+alwaysApply: true
+---
+
+# Alur pengembangan PocketPulse
+
+- Setelah satu tahap pengembangan selesai atau perubahan kode maupun dokumentasi siap, jalankan pengecekan yang relevan, commit perubahan tersebut, lalu push ke `origin/dev`.
+- Contoh untuk pembaruan backlog: cek diff, commit file dokumentasi, lalu jalankan `git push origin dev`.
+- Laporkan hash commit setelah push berhasil. Gunakan jalur `main` dan deploy Production hanya saat diminta secara eksplisit.
