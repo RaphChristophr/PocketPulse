@@ -2,11 +2,14 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Activity } from 'lucide-react'
 import { App } from './App'
 import { cloudMisconfigured, supabase, type CloudAccount } from './storage/cloud.ts'
+import { usePwa } from './usePwa'
 
 export function CloudApp() {
+  const pwa = usePwa()
   const [account, setAccount] = useState<CloudAccount | null | undefined>(supabase ? undefined : null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [installError, setInstallError] = useState(false)
   useEffect(() => {
     if (!supabase) return
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -15,8 +18,8 @@ export function CloudApp() {
     })
     return () => subscription.unsubscribe()
   }, [])
-  if (!supabase && !cloudMisconfigured) return <App />
-  if (account) return <App key={account.id} account={account} />
+  if (!supabase && !cloudMisconfigured) return <App pwa={pwa} />
+  if (account) return <App key={account.id} account={account} pwa={pwa} />
   async function signIn(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
@@ -44,6 +47,10 @@ export function CloudApp() {
             {error && <p className="form-error" role="alert">{error}</p>}
             <button className="button primary" disabled={busy} type="submit">{busy ? 'Sedang masuk…' : 'Masuk'}</button>
           </form>
+          {pwa.install && !pwa.installed && <button className="button secondary cloud-actions" onClick={() => {
+            void pwa.install?.().catch(() => setInstallError(true))
+          }}>Pasang PocketPulse</button>}
+          {installError && <p className="muted cloud-actions" role="status">Buka menu browser untuk memasang PocketPulse.</p>}
         </>}
     </div>
   </main>

@@ -5,6 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 export default defineConfig({
   plugins: [react(), VitePWA({
     injectRegister: null,
+    useCredentials: true,
     manifest: {
       name: 'PocketPulse',
       short_name: 'PocketPulse',

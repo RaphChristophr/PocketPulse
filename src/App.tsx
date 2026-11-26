@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Activity, ArrowLeftRight, ChartPie, ChevronRight, CircleCheck, CloudOff, LayoutDashboard, Plus, Settings2, X } from 'lucide-react'
-import { registerSW } from 'virtual:pwa-register'
 import { Dashboard } from './Dashboard'
 import { EditorDialog, type Change, type Editor } from './Editors'
 import { Budgets, History, Settings } from './Pages'
@@ -8,6 +7,7 @@ import { demoLedger } from './domain/demo.ts'
 import { budgetRows, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, today, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { type CloudAccount } from './storage/cloud.ts'
 import { readLedger, updateLedger } from './storage/ledger.ts'
+import type { Pwa } from './usePwa'
 
 const routes = [
   { id: 'ringkasan', name: 'Ringkasan', icon: LayoutDashboard },
@@ -16,16 +16,14 @@ const routes = [
   { id: 'pengaturan', name: 'Pengaturan', icon: Settings2 },
 ] as const
 
-interface InstallPrompt extends Event {
-  prompt(): Promise<unknown>
-}
 function getRoute() {
   const [path = '', search = ''] = window.location.hash.slice(1).split('?')
   return { screen: routes.find(item => item.id === path)?.id ?? 'ringkasan', filters: new URLSearchParams(search) }
 }
 
-export function App({ account }: { account?: CloudAccount }) {
+export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
   const storageKey = account ? `cloud:${account.id}` : 'primary'
+  const { install, installed, readyOffline, refresh } = pwa
   const [day, setDay] = useState(today)
   const activeDay = useRef(day)
   const [data, setData] = useState<Ledger | null>(null)
@@ -37,11 +35,6 @@ export function App({ account }: { account?: CloudAccount }) {
   const [editor, setEditor] = useState<Editor | null>(null)
   const [toast, setToast] = useState<{ message: string; details?: string[] } | null>(null)
   const [online, setOnline] = useState(navigator.onLine)
-  const [readyOffline, setReadyOffline] = useState(Boolean(navigator.serviceWorker?.controller))
-  const [refresh, setRefresh] = useState<(() => void) | null>(null)
-  const [install, setInstall] = useState<InstallPrompt | null>(null)
-  const [installed, setInstalled] = useState(() => window.matchMedia('(display-mode: standalone)').matches
-    || Boolean((navigator as Navigator & { standalone?: boolean }).standalone))
   const notify = useCallback((message: string) => setToast({ message }), [])
 
   useEffect(() => {
@@ -60,30 +53,17 @@ export function App({ account }: { account?: CloudAccount }) {
       setPeriod(value => value === periodStart(previous) ? periodStart(current) : value)
       setWeek(value => value === weekStart(previous) ? weekStart(current) : value)
     }
-    function beforeInstall(event: Event) {
-      event.preventDefault()
-      setInstall(event as InstallPrompt)
-    }
-    function onInstall() { setInstalled(true); setInstall(null) }
     window.addEventListener('hashchange', onHash)
     window.addEventListener('online', syncNetwork)
     window.addEventListener('offline', syncNetwork)
     window.addEventListener('focus', refreshDate)
-    window.addEventListener('beforeinstallprompt', beforeInstall)
-    window.addEventListener('appinstalled', onInstall)
     const timer = window.setInterval(refreshDate, 30_000)
-    const update = registerSW({
-      onOfflineReady() { setReadyOffline(true) },
-      onNeedRefresh() { setRefresh(() => () => { void update(true) }) },
-    })
     return () => {
       clearInterval(timer)
       window.removeEventListener('hashchange', onHash)
       window.removeEventListener('online', syncNetwork)
       window.removeEventListener('offline', syncNetwork)
       window.removeEventListener('focus', refreshDate)
-      window.removeEventListener('beforeinstallprompt', beforeInstall)
-      window.removeEventListener('appinstalled', onInstall)
     }
   }, [account?.id, storageKey])
 
@@ -130,7 +110,7 @@ export function App({ account }: { account?: CloudAccount }) {
     ].filter(Boolean)
     setToast({ message, details })
   }
-  const startInstall = install ? () => { void install.prompt().then(() => setInstall(null)).catch(() => notify('Buka menu browser untuk memasang PocketPulse.')) } : undefined
+  const startInstall = install ? () => { void install().catch(() => notify('Buka menu browser untuk memasang PocketPulse.')) } : undefined
   return <div className="app-shell">
     <aside className="sidebar">
       <a className="brand" href="#ringkasan"><span className="brand-mark"><Activity size={22} strokeWidth={2.35} /></span><span>PocketPulse</span></a>

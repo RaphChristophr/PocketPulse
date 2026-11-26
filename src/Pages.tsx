@@ -191,7 +191,7 @@ export function Settings({ data, save, edit, notify, install, installed, account
       </section>
       <section className="panel data-panel"><div className="panel-heading"><div><h2>Akses dari HP</h2><p>{installed ? 'PocketPulse berjalan sebagai aplikasi terpasang.' : 'Buka langsung dari layar utama.'}</p></div><Smartphone className="panel-icon" size={19} /></div>
         {!installed && (install ? <button className="button secondary" onClick={install}>Pasang PocketPulse</button>
-          : <p className="muted">Buka menu browser dan pilih Pasang aplikasi atau Tambahkan ke Layar Utama.</p>)}
+          : <p className="muted">Di Chrome Android, pilih Tambahkan ke Layar Utama lalu Pasang aplikasi. Di Safari iPhone, gunakan Bagikan → Tambahkan ke Layar Utama, lalu aktifkan Buka sebagai App Web.</p>)}
       </section>
     </div>
   </>
