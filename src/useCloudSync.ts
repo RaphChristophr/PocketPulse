@@ -1,8 +1,8 @@
 import { t } from './domain/language.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Commit } from './Editors'
-import { emptyLedger, type Ledger } from './domain/finance.ts'
-import { changedTransactions, sameLedger, syncDirection } from './domain/sync.ts'
+import { emptyLedger, type Ledger, type Transaction } from './domain/finance.ts'
+import { changedTransactions, hasSyncedTransaction, sameLedger, syncDirection } from './domain/sync.ts'
 import { readCloudLedger, writeCloudLedger } from './storage/cloud.ts'
 import { readLedger, readSyncBaseline, writeSyncBaseline } from './storage/ledger.ts'
 
@@ -105,7 +105,9 @@ export function useCloudSync({ ownerId, storageKey, data, save, online, paused }
   }, [ownerId, data, online, paused, rerun, sync])
 
   const pending = Boolean(data && !sameLedger(data, baseline ?? emptyLedger()))
-  return { sync, pending, lastSync, status, result, message }
+  return { sync, pending, lastSync, status, result, message,
+    isTransactionSynced: (transaction: Transaction) => hasSyncedTransaction(baseline, transaction),
+  }
 }
 
 export type CloudSync = ReturnType<typeof useCloudSync>

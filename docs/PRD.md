@@ -18,6 +18,12 @@ Pengguna awal adalah pemilik PocketPulse sendiri. Saat ini ia mencatat di Notes,
 Jika belum ada kategori yang bisa dipilih untuk jenis transaksi, isi nama kategori pertama langsung di form **Catat transaksi**. PocketPulse menyimpan kategori dan transaksi bersamaan.
 5. Koreksi transaksi jika salah. Saldo, budget, dan ringkasan mengikuti hasil koreksi.
 
+Form menampilkan hingga enam kategori yang dipilih, difavoritkan, atau terakhir dipakai. Buka **Semua kategori** untuk mencari nama atau tambahkan kategori dari form. Arsipkan kategori di Pengaturan untuk menyembunyikannya dari pencatatan baru sambil mempertahankan riwayat dan limit lama. Kategori dapat diaktifkan kembali.
+
+Di HP, buka Riwayat dari bagian atas Ringkasan untuk mencari catatan dan memfilter jenis, tanggal, kategori, atau sumber dana. Geser layar ke kiri atau kanan untuk berpindah di antara Ringkasan, Cashflow, Budget, dan Pengaturan. Grafik, daftar yang bisa digulir ke samping, dan kontrol form memakai interaksi masing-masing.
+
+Ringkasan menampilkan hingga tiga sisa jatah dari bagian hari yang berlaku tepat di bawah saldo. Notifikasi setelah pencatatan menampilkan status **Tersimpan di perangkat** atau **Sudah tersinkron** setelah versi transaksi yang disimpan dikonfirmasi di cloud.
+
 ## Ikon dan warna
 
 Saat membuat atau mengedit kategori atau sumber dana, pengguna bisa memilih ikon dan warna secara terpisah dari pilihan bawaan. Form menyediakan pilihan awal dan pratinjau sebelum disimpan. Tampilkan ikon berwarna bersama nama pada pemilih transaksi, Riwayat, Budget, dan Ringkasan sesuai konteks. Misalnya, Makan memakai ikon alat makan berwarna oranye dan Tunai memakai ikon dompet berwarna hijau.
@@ -35,7 +41,7 @@ PocketPulse bisa dipasang di layar utama HP sebagai PWA. Setelah aplikasi dibuka
 ## Aturan budget
 
 - **Mingguan.** Satu minggu berjalan Senin–Minggu. Weekdays adalah satu jatah bersama Senin–Jumat. Sabtu dan Minggu masing-masing punya jatah sendiri. Set limit per kategori di setiap bagian. Sediakan tindakan untuk menyalin limit minggu lalu ke minggu yang belum punya budget.
-- **Bulanan.** Set satu limit per kategori per periode gajian. Periode mulai tanggal 25 dan berakhir tanggal 24 bulan berikutnya, keduanya termasuk dalam periode. Tanggal 25 bulan berikutnya membuka periode baru. Misalnya, gaji yang masuk 25 November tercatat di periode 25 November–24 Desember. Tampilkan rentang tanggal yang sama pada budget dan ringkasan pengeluaran bulanan.
+- **Bulanan.** Set satu limit per kategori per periode gajian. Periode mulai tanggal 25 dan berakhir tanggal 24 bulan berikutnya, keduanya termasuk dalam periode. Tanggal 25 bulan berikutnya membuka periode baru. Misalnya, gaji yang masuk 25 November tercatat di periode 25 November–24 Desember. Tampilkan rentang tanggal yang sama pada budget dan ringkasan pengeluaran bulanan. Tampilkan pratinjau sebelum menyalin limit periode sebelumnya ke kategori aktif yang belum memiliki limit.
 - **Satu transaksi bisa memakai dua limit.** Pengeluaran Ojek Rp20.000 pada Selasa mengurangi sisa Ojek Weekdays di minggu tersebut dan Ojek di periode gajian tersebut. Ringkasan pengeluaran mencatat Rp20.000 satu kali. Tampilkan sisa kedua limit berdampingan dan hitung nominal kelebihan masing-masing.
 - **Kategori dan periode fleksibel.** Internet bisa punya budget bulanan saja. Kategori tanpa limit tetap muncul di laporan pengeluaran dan diberi status “Belum diatur” bila ditampilkan di Budget. Limit Rp0 berarti target pengeluaran nol. Sisa budget selesai di akhir periode. Menyalin limit hanya menyalin rencana nominal.
 - **Minggu lintas periode gajian.** Senin–Minggu tetap satu minggu yang sama. Misalnya, Selasa 24 dan Rabu 25 November 2026 memakai jatah Weekdays yang sama dan masuk ke dua budget bulanan berbeda. Sebaliknya, 30 November dan 1 Desember sama-sama masuk periode 25 November–24 Desember.

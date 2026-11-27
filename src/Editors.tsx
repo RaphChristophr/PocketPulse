@@ -58,18 +58,21 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
           let categoryId = read(form, 'category')
           let categories = current.categories
           const titheIncomeId = read(form, 'titheIncomeId')
+          const prior = current.transactions.find(item => item.id === base.id)
           if (type === 'expense' && titheIncomeId) {
             categoryId = titheCategory.id
             if (!categories.some(item => item.id === categoryId)) categories = [...categories, titheCategory]
           } else if (type !== 'transfer' && form.has('newCategory')) {
             const name = read(form, 'newCategory').trim()
             if (!name) throw new Error(t("Isi nama kategori."))
-            const existing = categories.find(item => item.type === type && item.name === name && item.id !== titheCategory.id)
+            const existing = categories.find(item => item.type === type && item.name === name && !item.archived && item.id !== titheCategory.id)
             categoryId = existing?.id ?? crypto.randomUUID()
             if (!existing) categories = [...categories, {
               id: categoryId, name, type, iconKey: type === 'income' ? 'briefcase' : 'bag', colorKey: 'jade',
             }]
           }
+          if (type !== 'transfer' && categories.find(item => item.id === categoryId)?.archived
+            && (prior?.type === 'transfer' || prior?.categoryId !== categoryId)) throw new Error(t("Kategori ini sudah diarsipkan."))
           const tx: Transaction = type === 'transfer'
             ? { ...base, type, fromAccountId: read(form, 'from'), toAccountId: read(form, 'to') }
             : type === 'income'
@@ -94,15 +97,20 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
           return { ...current, accounts: replaceById(current.accounts, item) }
         }
         if (editor.kind === 'category') {
+          const existing = current.categories.find(item => item.id === editor.item?.id)
           const item: Category = {
             id: editor.item?.id ?? crypto.randomUUID(), name: read(form, 'name').trim(), type: read(form, 'type') as Category['type'],
             ...(read(form, 'parent') ? { parentId: read(form, 'parent') } : {}),
+            ...(existing?.archived ? { archived: true } : {}),
             iconKey: read(form, 'icon') as Category['iconKey'], colorKey: read(form, 'color') as Category['colorKey'],
           }
           return { ...current, categories: replaceById(current.categories, item) }
         }
         const categoryId = read(form, 'category')
         const limitIdr = parseMoney(read(form, 'limit'))
+        if (editor.limit === undefined && current.categories.find(item => item.id === categoryId)?.archived) {
+          throw new Error(t("Kategori ini sudah diarsipkan."))
+        }
         if (editor.segment) {
           const weeklyBudgets = current.weeklyBudgets.filter(row => row.weekStart !== editor.start || row.segment !== editor.segment || row.categoryId !== categoryId)
           return { ...current, weeklyBudgets: [...weeklyBudgets, { weekStart: editor.start, segment: editor.segment, categoryId, limitIdr }] }
@@ -128,7 +136,24 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
       onSaved(t("Catatan dihapus"))
     })
   }
+  function setCategoryArchived(category: Category) {
+    const archived = !category.archived
+    void run(async () => {
+      await save(current => ({
+        ...current,
+        categories: current.categories.map(item => {
+          if (item.id !== category.id) return item
+          const updated = { ...item }
+          if (archived) updated.archived = true
+          else delete updated.archived
+          return updated
+        }),
+      }))
+      onSaved(archived ? t("Kategori diarsipkan") : t("Kategori diaktifkan kembali"))
+    })
+  }
   const canDelete = (editor.kind === 'transaction' && editor.item) || (editor.kind === 'budget' && editor.limit !== undefined)
+  const categoryItem = editor.kind === 'category' ? editor.item : undefined
   return <dialog ref={dialog} className={isTransaction ? "dialog transaction-dialog" : "dialog"} onCancel={event => { event.preventDefault(); if (!busy) close() }} aria-labelledby="editor-heading">
     <div className="dialog-heading"><h2 id="editor-heading">{title}</h2><button type="button" className="icon-button" onClick={close} disabled={busy} aria-label={t("Tutup")}>{isTransaction ? <ChevronLeft size={22} /> : <X size={22} />}</button></div>
     <form onSubmit={submit}>
@@ -142,6 +167,8 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="dialog-actions">
         {canDelete && <button className="button danger" type="button" onClick={remove} disabled={busy}>{t("Hapus")}</button>}
+        {categoryItem && <button className="button secondary" type="button" onClick={() => setCategoryArchived(categoryItem)}
+          disabled={busy}>{categoryItem.archived ? t("Aktifkan kembali") : t("Arsipkan")}</button>}
         <button className="button primary" type="submit" disabled={busy}>{busy ? t("Menyimpan…") : isTransaction && Number.isSafeInteger(amount) && amount > 0 ? `${t("Simpan")} · ${rupiah(amount)}` : t("Simpan")}</button>
       </div>
     </form>
@@ -163,10 +190,38 @@ function TransactionFields({ data, day, tx, linkedId, linkedAllocation, amount, 
   const [from, setFrom] = useState(tx?.type === 'transfer' ? tx.fromAccountId : '')
   const [to, setTo] = useState(tx?.type === 'transfer' ? tx.toAccountId : '')
   const [favoriteAction, setFavoriteAction] = useState('')
-  const favorites = data.favorites ?? []
+  const [categoryMode, setCategoryMode] = useState<'quick' | 'all' | 'new'>('quick')
+  const [categoryQuery, setCategoryQuery] = useState('')
+  const originalCategory = tx?.type !== 'transfer' ? tx?.categoryId : undefined
+  const matched = data.categories.filter(item => item.type === type && item.id !== titheCategory.id
+    && (!item.archived || item.id === originalCategory))
+  const activeCategoryIds = new Set(matched.filter(item => !item.archived).map(item => item.id))
+  const favorites = (data.favorites ?? []).filter(item => activeCategoryIds.has(item.categoryId))
   const favoriteExists = favorites.some(item => item.accountId === account && item.categoryId === category)
   const isFavorite = favoriteAction ? favoriteAction === 'add' : favoriteExists
-  const matched = data.categories.filter(item => item.type === type && item.id !== titheCategory.id)
+  const lastUsed = new Map<string, string>()
+  for (const item of data.transactions) {
+    if (item.type === 'transfer' || item.type !== type || !activeCategoryIds.has(item.categoryId)) continue
+    if (item.date > (lastUsed.get(item.categoryId) ?? '')) lastUsed.set(item.categoryId, item.date)
+  }
+  const favoriteIds = new Set(favorites.map(item => item.categoryId))
+  const suggested = [...matched].sort((left, right) => Number(favoriteIds.has(right.id)) - Number(favoriteIds.has(left.id))
+    || (lastUsed.get(right.id) ?? '').localeCompare(lastUsed.get(left.id) ?? '')).slice(0, 6)
+  const selectedCategory = matched.find(item => item.id === category)
+  const quick = selectedCategory && !suggested.includes(selectedCategory) ? [...suggested.slice(0, 5), selectedCategory] : suggested
+  const query = categoryQuery.trim().toLocaleLowerCase()
+  const filtered = categoryMode === 'all' ? matched.filter(item => categoryLabel(data.categories, item).toLocaleLowerCase().includes(query)) : quick
+  const creating = !matched.length || categoryMode === 'new'
+  const chooseCategory = (id: string) => {
+    setCategory(id)
+    setCategoryMode('quick')
+    setCategoryQuery('')
+    setFavoriteAction('')
+  }
+  const favoriteButton = (item: typeof favorites[number]) => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
+    setAccount(item.accountId)
+    chooseCategory(item.categoryId)
+  }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>
   const accountField = (title: string, inputName: string, value: string, update: (value: string) => void) =>
     <VisualPicker label={title} name={inputName} value={value} placeholder={t("Pilih sumber dana")} options={data.accounts}
       onChange={value => { update(value); setFavoriteAction('') }} />
@@ -177,14 +232,13 @@ function TransactionFields({ data, day, tx, linkedId, linkedAllocation, amount, 
     <div className="transaction-sheet">
       {linkedId ? <h3>{t("Pembayaran Tithe")}</h3> : <div className="segmented" role="group" aria-label={t("Jenis")}>
         {Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
-          onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{t(label)}</button>)}</div>}
+          onClick={() => { if (type !== key) { setType(key as Transaction['type']); chooseCategory('') } }}>{t(label)}</button>)}</div>}
       <input type="hidden" name="type" value={type} />
       {type === 'expense' && !tx && !linkedId && favorites.length > 0 && <div className="favorite-buttons" aria-label={t("Favorit transaksi")}>
-        {favorites.map(item => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
-          setAccount(item.accountId)
-          setCategory(item.categoryId)
-          setFavoriteAction('')
-        }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>)}
+        {favorites.slice(0, 3).map(favoriteButton)}
+        {favorites.length > 3 && <details className="more-favorites">
+          <summary>{t("Favorit lainnya")}</summary><div className="favorite-buttons">{favorites.slice(3).map(favoriteButton)}</div>
+        </details>}
       </div>}
       {type === 'transfer' ? <div className="form-columns">
         {accountField(t("Akun asal"), 'from', from, setFrom)}
@@ -194,20 +248,39 @@ function TransactionFields({ data, day, tx, linkedId, linkedAllocation, amount, 
         <p className="muted">{linkedAllocation?.income.note || t("Alokasi Tithe yang dipilih")}</p>
       </> : <fieldset className="category-choice">
         <legend>{t("Kategori")}</legend>
-        {matched.length ? <div className="category-grid">{matched.map(item => <label key={item.id}>
-          <input type="radio" name="category" value={item.id} required checked={category === item.id}
-            onChange={() => { setCategory(item.id); setFavoriteAction('') }} />
-          <Glyph item={item} size={22} /><span>{categoryLabel(data.categories, item)}</span>
-        </label>)}</div> : <Label key={type} title={t("Nama kategori baru")}>
-          <input required name="newCategory" maxLength={60} placeholder={type === 'income' ? t("Misalnya Gaji") : t("Misalnya Makan")} />
-        </Label>}
+        {creating ? <>
+          <Label key={type} title={t("Nama kategori baru")}>
+            <input required name="newCategory" maxLength={60} autoFocus={categoryMode === 'new'} defaultValue={categoryQuery.trim().slice(0, 60)}
+              placeholder={type === 'income' ? t("Misalnya Gaji") : t("Misalnya Makan")} />
+          </Label>
+          {matched.length > 0 && <button type="button" className="text-button" onClick={() => setCategoryMode('quick')}>{t("Pilih kategori yang sudah ada")}</button>}
+        </> : <>
+          <input type="hidden" name="category" value={category} />
+          {categoryMode === 'all' && <Label title={t("Cari kategori")}>
+            <input autoFocus type="search" value={categoryQuery} onChange={event => setCategoryQuery(event.target.value)}
+              onKeyDown={event => { if (event.key === 'Enter') event.preventDefault() }} />
+          </Label>}
+          <div className={categoryMode === 'all' ? 'category-grid category-grid-all' : 'category-grid'}>
+            {filtered.map(item => <button type="button" key={item.id} aria-pressed={category === item.id}
+              onClick={() => chooseCategory(item.id)}>
+              <Glyph item={item} size={22} /><span>{categoryLabel(data.categories, item)}</span>
+              {item.archived && <small>{t("Diarsipkan")}</small>}
+            </button>)}
+          </div>
+          {categoryMode === 'all' && !filtered.length && <p className="muted">{t("Tidak ada kategori yang cocok.")}</p>}
+          <div className="category-actions">
+            <button type="button" className="text-button" onClick={() => { setCategoryQuery(''); setCategoryMode(categoryMode === 'all' ? 'quick' : 'all') }}
+              aria-expanded={categoryMode === 'all'}>{t(categoryMode === 'all' ? "Tutup daftar kategori" : "Semua kategori")}</button>
+            <button type="button" className="text-button" onClick={() => { setFavoriteAction(''); setCategoryMode('new') }}>{t("Tambah kategori")}</button>
+          </div>
+        </>}
       </fieldset>}
       <div className="form-columns transaction-details">
         <Label title={t("Tanggal")}><input required name="date" type="date" min={linkedAllocation?.income.date} max={day} defaultValue={tx?.date ?? day} /></Label>
         {type !== 'transfer' && accountField(t("Sumber dana"), 'account', account, setAccount)}
       </div>
       <Label title={t("Catatan (opsional)")}><input name="note" placeholder={t("Contoh: makan siang")} maxLength={160} defaultValue={tx?.note} /></Label>
-      {type === 'expense' && !linkedId && account && category && <>
+      {type === 'expense' && !linkedId && account && activeCategoryIds.has(category) && !creating && <>
         <input type="hidden" name="favoriteAction" value={favoriteAction} />
         <label className="checkbox"><input type="checkbox" checked={isFavorite} onChange={event => {
           setFavoriteAction(event.target.checked === favoriteExists ? '' : event.target.checked ? 'add' : 'remove')
@@ -256,7 +329,8 @@ function CategoryFields({ category, data }: { category?: Category; data: Ledger 
     <Label title={t("Jenis")}><Select name="type" value={type} onChange={event => setType(event.target.value as Category['type'])}>
       <option value="expense">{t("Pengeluaran")}</option><option value="income">{t("Pemasukan")}</option></Select></Label>
     {type === 'expense' && !hasChildren && !hasBudget && <Label title={t("Kategori induk")}><Select name="parent" defaultValue={category?.parentId ?? ''}>
-      <option value="">{t("Kategori utama")}</option>{data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== titheCategory.id && item.id !== category?.id)
+      <option value="">{t("Kategori utama")}</option>{data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== titheCategory.id && item.id !== category?.id
+        && (!item.archived || item.id === category?.parentId))
         .map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Label>}
     <AppearanceFields item={category} defaultIcon="bag" />
   </>
@@ -266,7 +340,7 @@ function BudgetFields({ data, editor }: { data: Ledger; editor: Extract<Editor, 
     ? data.weeklyBudgets.filter(row => row.weekStart === editor.start && row.segment === editor.segment)
     : data.monthlyBudgets.filter(row => row.periodStart === editor.start)
   const options = data.categories.filter(category => category.type === 'expense' && !category.parentId && category.id !== titheCategory.id
-    && (!editor.categoryId ? !configured.some(row => row.categoryId === category.id) : category.id === editor.categoryId))
+    && (!editor.categoryId ? !category.archived && !configured.some(row => row.categoryId === category.id) : category.id === editor.categoryId))
   return <>
     <p className="muted">{editor.segment ? t(segments[editor.segment]) : t("Periode gajian")}</p>
     <Label title={t("Kategori")}><Select name="category" required defaultValue={editor.categoryId ?? ''}>

@@ -2,19 +2,22 @@
 
 ## Menu Cashflow dan hitung mundur gajian
 
-**Status** — Cashflow dan Insight sudah digabung secara lokal. Push menunggu pengiriman bersama pembaruan berikutnya.
+**Status** — Cashflow dan Insight sudah digabung. Perubahan ini masuk dalam batch pembaruan alur harian.
 
 - Tambahkan menu **Cashflow** dengan grafik batang yang bisa dipilih, arus kas bersih, total pemasukan dan pengeluaran, serta rincian kategori yang membuka Riwayat.
+- Tempatkan kartu Pemasukan dan Pengeluaran dekat arus kas bersih, di atas grafik.
 - Gunakan merah untuk kartu Pengeluaran agar mudah dibedakan dari Pemasukan.
 - Gabungkan tren Insight ke Cashflow. Pakai periode gajian 25–24 sebagai default dan sediakan pilihan Minggu ini serta Bulan kalender. **To payday** menghitung sisa hari ke tanggal 25 berdasarkan hari ini di WIB.
 
 ## Layout mobile untuk Ringkasan dan Catat transaksi
 
-**Status** — Diimplementasikan. Tampilan HP dan pencatatan pengeluaran diuji di browser dengan data contoh.
+**Status** — Diimplementasikan. Pencatatan, arsip kategori, Riwayat, salin limit, dan swipe diuji di browser dengan data contoh.
 
-- **Ringkasan.** Tonjolkan saldo tersedia di header hijau. Tampilkan total saldo dan saldo tabungan serta dana darurat secara terpisah. Pindahkan pilihan periode dan progres budget ke bagian grafik pengeluaran, diikuti kartu kategori dan transaksi terbaru. Sediakan akses ke Riwayat lengkap dari daftar transaksi terbaru.
-- **Catat transaksi.** Letakkan input nominal berukuran besar di bagian atas. Tampilkan kategori pengeluaran sebagai kisi ikon, lalu letakkan tanggal, sumber dana, dan catatan di bawahnya. Buat tombol Simpan mudah dijangkau dan pastikan alur pemasukan serta transfer tetap bisa diakses dari form.
-- **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif dan tempatkan tombol **+** di sampingnya untuk membuka Catat transaksi. Gunakan ikon dengan nama aksesibel dan tampilkan nama menu aktif saat ruang cukup.
+- **Ringkasan.** Tampilkan saldo tersedia, saldo total, dan dana yang disisihkan di header hijau. Tampilkan tiga sisa jatah hari ini di bawah saldo dan sediakan pintasan Riwayat di header.
+- **Catat transaksi.** Letakkan input nominal berukuran besar di atas enam kategori cepat. Sediakan pencarian semua kategori, penambahan langsung, dan arsip kategori di Pengaturan. Riwayat kategori arsip tetap bisa dibuka dan dikoreksi.
+- **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif, tempatkan tombol **+** di sampingnya, dan dukung swipe antarhalaman utama dengan pengecualian kontrol interaktif.
+- **Riwayat.** Cari catatan, pilih jenis transaksi, dan hapus semua filter dari layar yang sama. Tampilkan jenis yang aktif dari tautan grafik.
+- **Budget.** Tampilkan pratinjau sebelum menyalin limit periode gajian sebelumnya ke kategori aktif yang belum memiliki limit.
 
 ## Pengingat mencatat transaksi setiap malam
 
@@ -62,6 +65,7 @@
 **Status** — Diimplementasikan di branch `dev`. Sinkronisasi otomatis aktif saat aplikasi terbuka dan online.
 
 - Tampilkan status **Belum tersinkron**, **Sedang menyinkronkan**, atau waktu **Terakhir berhasil sinkron**. Jelaskan hasilnya, misalnya “1 transaksi ditarik dari cloud”. Simpan keterangan kegagalan di Pengaturan agar bisa dibaca lagi setelah pemberitahuan hilang.
+- Setelah transaksi disimpan, tampilkan status penyimpanan di perangkat dan perbarui setelah versi transaksi tersebut dikonfirmasi di cloud.
 - Simpan perubahan ke perangkat terlebih dahulu. Jalankan sinkronisasi otomatis saat aplikasi dibuka kembali, setelah perubahan tersimpan ketika online, dan saat koneksi kembali selama aplikasi terbuka. Pertahankan tombol **Sinkronkan** untuk percobaan manual.
 - Jika catatan di dua perangkat sama-sama berubah sejak sinkronisasi terakhir, tampilkan konflik dan hentikan sinkronisasi untuk data itu sampai pengguna menentukannya. Uji perubahan dan penghapusan transaksi, koneksi yang putus lalu kembali, serta konflik lintas perangkat.
 

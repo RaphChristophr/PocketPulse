@@ -1,4 +1,4 @@
-import { emptyLedger, type Ledger } from './finance.ts'
+import { emptyLedger, type Ledger, type Transaction } from './finance.ts'
 
 export type SyncBaseline = { revision: string; ledger: Ledger; syncedAt?: number }
 
@@ -11,6 +11,11 @@ function sorted(_key: string, value: unknown): unknown {
 
 export function sameLedger(left: Ledger, right: Ledger) {
   return JSON.stringify(left, sorted) === JSON.stringify(right, sorted)
+}
+
+export function hasSyncedTransaction(baseline: Ledger | undefined, transaction: Transaction) {
+  const stored = baseline?.transactions.find(item => item.id === transaction.id)
+  return stored !== undefined && JSON.stringify(stored, sorted) === JSON.stringify(transaction, sorted)
 }
 
 export function syncDirection(local: Ledger, baseline: SyncBaseline | undefined, remote: SyncBaseline | undefined) {

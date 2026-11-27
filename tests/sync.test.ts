@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { emptyLedger } from '../src/domain/finance.ts'
 import { demoLedger } from '../src/domain/demo.ts'
-import { sameLedger, syncDirection } from '../src/domain/sync.ts'
+import { hasSyncedTransaction, sameLedger, syncDirection } from '../src/domain/sync.ts'
 
 const initial = { ...demoLedger('2026-12-01'), demo: false }
 const baseline = { revision: 'A', ledger: initial }
@@ -33,4 +33,12 @@ test('sync status counts inserted, removed, and edited transactions', async () =
   const edited = { ...initial, transactions: initial.transactions.slice(1).map((item, index) => index === 0 ? { ...item, note: 'Edited' } : item) }
   assert.equal(changedTransactions(initial, edited), 2)
   assert.equal(changedTransactions(initial, initial), 0)
+})
+
+test('status transaksi memerlukan versi yang sama dalam snapshot tersinkron', () => {
+  const transaction = initial.transactions[0]
+  assert.equal(hasSyncedTransaction(undefined, transaction), false)
+  assert.equal(hasSyncedTransaction(local, transaction), false)
+  assert.equal(hasSyncedTransaction(initial, { ...transaction, note: 'Belum dikirim' }), false)
+  assert.equal(hasSyncedTransaction(initial, transaction), true)
 })

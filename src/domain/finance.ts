@@ -15,7 +15,7 @@ export const segments = { weekdays: 'Senin–Jumat', saturday: 'Sabtu', sunday: 
 export const transactionNames = { expense: 'Pengeluaran', income: 'Pemasukan', transfer: 'Transfer' } as const
 type Appearance = { iconKey: keyof typeof icons; colorKey: keyof typeof colors }
 export type Account = Appearance & { id: string; name: string; type: keyof typeof accountTypes; openingBalanceIdr: number; openingDate: string; isSavings: boolean }
-export type Category = Appearance & { id: string; name: string; type: 'income' | 'expense'; parentId?: string }
+export type Category = Appearance & { id: string; name: string; type: 'income' | 'expense'; parentId?: string; archived?: boolean }
 type TransactionBase = { id: string; date: string; amountIdr: number; note: string }
 export type Transaction = TransactionBase & (
   { type: 'income'; accountId: string; categoryId: string; tithe?: boolean } |
@@ -111,6 +111,15 @@ export function budgetRows(data: Ledger, start: string, segment?: Segment): Arra
       .map(row => ({ ...row, spent: spentBy(data.transactions, row.categoryId, start, periodEnd(start), undefined, data.categories) }))
 }
 
+export function monthlyLimitsToCopy(data: Ledger, start: string): MonthlyBudget[] {
+  const previous = addMonths(start, -1)
+  const configured = new Set(data.monthlyBudgets.filter(row => row.periodStart === start).map(row => row.categoryId))
+  const active = new Set(data.categories.filter(category => !category.archived).map(category => category.id))
+  return data.monthlyBudgets
+    .filter(row => row.periodStart === previous && active.has(row.categoryId) && !configured.has(row.categoryId))
+    .map(row => ({ ...row, periodStart: start }))
+}
+
 const keyOf = <T extends object>(catalog: T, value: unknown): value is keyof T =>
   typeof value === 'string' && Object.hasOwn(catalog, value)
 const isText = (value: unknown): value is string => typeof value === 'string' && value.trim().length > 0
@@ -148,7 +157,8 @@ export function validateLedger(input: unknown): Ledger {
   }
   for (const category of data.categories) {
     requireValid(isText(category.id) && isText(category.name) && (category.type === 'income' || category.type === 'expense')
-      && keyOf(icons, category.iconKey) && keyOf(colors, category.colorKey), t("Kategori tidak valid."))
+      && keyOf(icons, category.iconKey) && keyOf(colors, category.colorKey)
+      && (category.archived === undefined || typeof category.archived === 'boolean'), t("Kategori tidak valid."))
   }
   for (const category of data.categories) {
     if (category.parentId === undefined) continue

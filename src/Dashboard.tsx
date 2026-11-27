@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Activity, Bell, ChevronLeft, ChevronRight, Plus, Settings2 } from 'lucide-react'
+import { Activity, Bell, ChevronLeft, ChevronRight, History as HistoryIcon, Plus, Settings2 } from 'lucide-react'
 import { getLocale, t } from './domain/language.ts'
 import { addDays, addMonths, balanceSummary, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { spendingCategories, spendingDays } from './domain/spending.ts'
@@ -68,6 +68,7 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
     return row ? rupiah(row.limitIdr - row.spent) : t("Belum diatur")
   }
   const todayCategories = data.categories.filter(item => [...todayRows, ...currentLimits].some(row => row.categoryId === item.id))
+  const todayPreview = [...todayRows].sort((left, right) => (left.limitIdr - left.spent) - (right.limitIdr - right.spent)).slice(0, 3)
 
   return <div className="spending-home">
     <section className="spending-hero" aria-labelledby="spending-home-title">
@@ -75,8 +76,11 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
         <a className="hero-icon" href="#pengaturan" aria-label={t(data.demo ? "Data contoh" : "Ruang pribadi")}>
           {initials || <Activity size={20} />}{data.demo && <small className="hero-demo">Demo</small>}
         </a>
-        <a className="hero-icon" href={reminders ? '#pengaturan?bagian=pengingat' : '#pengaturan'}
-          aria-label={t(reminders ? "Pengingat harian" : "Pengaturan")}>{reminders ? <Bell size={20} /> : <Settings2 size={20} />}</a>
+        <div className="hero-tools">
+          <a className="hero-icon" href="#riwayat" aria-label={t("Riwayat")} title={t("Riwayat")}><HistoryIcon size={20} aria-hidden="true" /></a>
+          <a className="hero-icon" href={reminders ? '#pengaturan?bagian=pengingat' : '#pengaturan'}
+            aria-label={t(reminders ? "Pengingat harian" : "Pengaturan")}>{reminders ? <Bell size={20} /> : <Settings2 size={20} />}</a>
+        </div>
       </div>
       <h1 id="spending-home-title">{t("Saldo tersedia")}</h1>
       <p className="hero-amount">{rupiah(available)}</p>
@@ -88,6 +92,14 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
     </section>
 
     <div className="spending-home-body">
+      <section className="panel home-today" aria-labelledby="home-today-heading">
+        <div className="panel-heading"><div><h2 id="home-today-heading">{t("Sisa jatah hari ini")}</h2><p>{t(segments[segment])}</p></div>
+          <a className="text-button" href="#budget">{t("Lihat budget")}</a></div>
+        {todayPreview.length ? <ul>{todayPreview.map(row => <li key={row.categoryId}>
+          <span>{data.categories.find(item => item.id === row.categoryId)?.name}</span>
+          <strong className={row.spent > row.limitIdr ? 'danger-text' : undefined}>{rupiah(row.limitIdr - row.spent)}</strong>
+        </li>)}</ul> : <p className="muted">{t("Jatah untuk hari ini belum diatur.")}</p>}
+      </section>
       <section className="panel home-trend">
         <div className="panel-heading"><h2>{t("Tren pengeluaran")}</h2><PeriodControl period={period} setPeriod={setPeriod} /></div>
         <div className="home-spending">
@@ -106,7 +118,7 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
       </section>
       <section className="home-categories">
         <div className="panel-heading"><h2>{t("Kategori")}</h2><a className="text-button" href={`#cashflow?tanggal=${period}`}>{t("Lihat semua")}</a></div>
-        {categories.length ? <div className="category-cards">{categories.map(({ category, spent, budget }) =>
+        {categories.length ? <div className="category-cards" data-no-swipe>{categories.map(({ category, spent, budget }) =>
           <button type="button" className="panel category-card" key={category.id} onClick={() => drillDown(category.id, period, end)}>
             <span>{category.name}</span><strong>{rupiah(spent)}</strong>
             {budget && <><CategoryProgress value={percent(spent, budget.limitIdr)} color={category.colorKey} />
@@ -135,7 +147,7 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
               ? rupiah(sum(rows.map(row => row.limitIdr - row.spent))) : t("Belum diatur")}</strong></div>)}
         </div>
         {todayCategories.length > 0 && <div className="today-budget">
-          <div className="today-row"><strong>{t("Sisa jatah hari ini")}</strong><span>{t(segments[segment])}</span><span>{t("Periode gajian")}</span></div>
+          <div className="today-row"><strong>{t("Rincian jatah")}</strong><span>{t(segments[segment])}</span><span>{t("Periode gajian")}</span></div>
           {todayCategories.map(item => <div className="today-row" key={item.id}><span>{item.name}</span>
             <strong>{remaining(todayRows, item.id)}</strong><strong>{remaining(currentLimits, item.id)}</strong></div>)}
         </div>}

@@ -1,5 +1,5 @@
 import { t } from './domain/language.ts'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type TouchEvent } from 'react'
 import { Activity, ArrowLeftRight, ChartNoAxesColumn, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings as SettingsIcon, Wallet, X } from 'lucide-react'
 import { Dashboard } from './Dashboard'
 import { Cashflow } from './Cashflow'
@@ -19,6 +19,7 @@ const routes = [
   { id: 'pengaturan', name: 'Pengaturan', icon: SettingsIcon },
   { id: 'riwayat', name: 'Riwayat', icon: ArrowLeftRight },
 ] as const
+const swipeRoutes = routes.filter(item => item.id !== 'riwayat').map(item => item.id)
 
 function getRoute() {
   const [path = '', search = ''] = window.location.hash.slice(1).split('?')
@@ -39,7 +40,8 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
   const [week, setWeek] = useState(() => weekStart(day))
   const [mode, setMode] = useState<'weekly' | 'monthly'>('weekly')
   const [editor, setEditor] = useState<Editor | null>(null)
-  const [toast, setToast] = useState<{ message: string; details?: string[] } | null>(null)
+  const [toast, setToast] = useState<{ message: string; details?: string[]; transaction?: Transaction } | null>(null)
+  const swipe = useRef<{ x: number; y: number; screen: ReturnType<typeof getRoute>['screen'] }>(null)
   const [online, setOnline] = useState(navigator.onLine)
   const notify = useCallback((message: string) => setToast({ message }), [])
 
@@ -76,7 +78,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
 
   useEffect(() => {
     if (!toast) return
-    const timer = window.setTimeout(() => setToast(null), toast.details?.length ? 9500 : 5000)
+    const timer = window.setTimeout(() => setToast(null), toast.transaction ? 9500 : 5000)
     return () => clearTimeout(timer)
   }, [toast])
 
@@ -88,6 +90,38 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
 
   function navigate(path: string) {
     window.location.hash = path
+  }
+  function setHistoryFilters(filters: URLSearchParams) {
+    const query = filters.toString()
+    window.history.replaceState(window.history.state, '', query ? `#riwayat?${query}` : '#riwayat')
+    setRoute(getRoute())
+  }
+  function beginSwipe(event: TouchEvent<HTMLElement>) {
+    swipe.current = null
+    const touch = event.touches[0]
+    if (!data || editor || route.screen === 'riwayat' || event.touches.length !== 1
+      || !window.matchMedia('(max-width: 760px)').matches
+      || touch.clientX < 24 || touch.clientX > window.innerWidth - 24
+      || (event.target instanceof Element && event.target.closest('a, button, input, select, textarea, summary, label, [contenteditable], [data-no-swipe]'))) return
+    swipe.current = { x: touch.clientX, y: touch.clientY, screen: route.screen }
+  }
+  function trackSwipe(event: TouchEvent<HTMLElement>) {
+    if (!swipe.current) return
+    const touch = event.touches[0]
+    if (event.touches.length !== 1 || (Math.abs(touch.clientY - swipe.current.y) > 24
+      && Math.abs(touch.clientY - swipe.current.y) > Math.abs(touch.clientX - swipe.current.x))) swipe.current = null
+  }
+  function finishSwipe(event: TouchEvent<HTMLElement>) {
+    const start = swipe.current
+    swipe.current = null
+    const touch = event.changedTouches[0]
+    if (!start || !touch || start.screen !== route.screen || start.screen === 'riwayat'
+      || editor || window.getSelection()?.toString()) return
+    const dx = touch.clientX - start.x
+    const dy = touch.clientY - start.y
+    if (Math.abs(dx) < 72 || Math.abs(dx) < 1.5 * Math.abs(dy)) return
+    const target = swipeRoutes[swipeRoutes.indexOf(start.screen) + (dx < 0 ? 1 : -1)]
+    if (target) navigate(target)
   }
   function drillDown(category: string, start: string, end: string, segment?: Segment) {
     const params = new URLSearchParams({ dari: start, sampai: end })
@@ -123,18 +157,19 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
 
   function onSaved(message: string, tx?: Transaction, updated?: Ledger) {
     setEditor(null)
-    if (!tx || tx.type !== 'expense' || !updated) return notify(message)
+    if (!tx || tx.type !== 'expense' || !updated) return setToast({ message, transaction: tx })
     const month = periodStart(tx.date)
     const segment = segmentFor(tx.date)
-    const weekRow = budgetRows(updated, weekStart(tx.date), segment).find(row => row.categoryId === tx.categoryId)
-    const monthRow = budgetRows(updated, month).find(row => row.categoryId === tx.categoryId)
+    const budgetCategory = updated.categories.find(item => item.id === tx.categoryId)?.parentId ?? tx.categoryId
+    const weekRow = budgetRows(updated, weekStart(tx.date), segment).find(row => row.categoryId === budgetCategory)
+    const monthRow = budgetRows(updated, month).find(row => row.categoryId === budgetCategory)
     const remaining = (row: { limitIdr: number; spent: number }) =>
       row.limitIdr >= row.spent ? t("Sisa {amount}", { amount: rupiah(row.limitIdr - row.spent) }) : t("Lewat {amount}", { amount: rupiah(row.spent - row.limitIdr) })
     const details = [
       weekRow ? `${t(segments[segment])}: ${remaining(weekRow)}` : '',
       monthRow ? `${rangeLabel(month, periodEnd(month))}: ${remaining(monthRow)}` : '',
     ].filter(Boolean)
-    setToast({ message, details })
+    setToast({ message, details, transaction: tx })
   }
   const startInstall = install ? () => { void install().catch(() => notify(t("Buka menu browser untuk memasang PocketPulse."))) } : undefined
   return <div className="app-shell">
@@ -161,7 +196,8 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
           {data?.demo && <button className="demo-chip" onClick={() => navigate('pengaturan')}>{t("Data contoh")}</button>}
         </div>
       </header>
-      <main className="content">
+      <main className="content" onTouchStart={beginSwipe} onTouchMove={trackSwipe} onTouchEnd={finishSwipe}
+        onTouchCancel={() => { swipe.current = null }}>
         {refresh && <div className="update-notice"><span>{t("Versi baru tersedia.")}</span><button className="text-button" onClick={refresh} disabled={Boolean(editor)}>{t("Muat ulang")}</button></div>}
         {!data && <section className="panel loading-panel"><h1>PocketPulse</h1><p>{storageError ? t("Penyimpanan perangkat gagal dibuka.") : t("Memuat catatan keuangan…")}</p>
           {storageError && <button className="button secondary" onClick={() => window.location.reload()}>{t("Coba lagi")}</button>}</section>}
@@ -173,7 +209,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
             if (date) filters.set('tanggal', date)
             navigate(`cashflow?${filters}`)
           }} drillDown={drillDown} />}
-        {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={filters => navigate(`riwayat?${filters}`)}
+        {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={setHistoryFilters}
           edit={item => item.kind === 'transaction' && !item.titheIncomeId ? openTransaction(item.item) : setEditor(item)} />}
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}
           edit={setEditor} save={save} notify={notify} drillDown={drillDown} />}
@@ -182,7 +218,9 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
       </main>
     </div>
     {editor && data && <EditorDialog editor={editor} data={data} day={day} save={save} onSaved={onSaved} close={() => setEditor(null)} />}
-    {toast && <div className="toast" role="status"><div><strong>{toast.message}</strong>{toast.details?.map(detail => <p key={detail}>{detail}</p>)}</div>
+    {toast && <div className="toast" role="status"><div><strong>{toast.message}</strong>
+      {toast.transaction && <p>{t(cloudSync.isTransactionSynced(toast.transaction) ? "Sudah tersinkron" : "Tersimpan di perangkat")}</p>}
+      {toast.details?.map(detail => <p key={detail}>{detail}</p>)}</div>
       <button className="icon-button" onClick={() => setToast(null)} aria-label={t("Tutup pemberitahuan")}><X size={17} /></button></div>}
   </div>
 }

@@ -4,6 +4,13 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Alur harian di HP
+
+- Ringkas pemilih transaksi menjadi enam kategori cepat. Tambahkan pencarian dan pembuatan dari form, serta arsip kategori yang mempertahankan riwayat.
+- Tampilkan sisa jatah hari ini dan pintasan Riwayat di Ringkasan. Tambahkan pencarian catatan, filter jenis, dan hapus semua filter di Riwayat. Tempatkan pemasukan dan pengeluaran dekat arus kas bersih di Cashflow.
+- Tambahkan pratinjau salin limit periode gajian, status simpan lokal dan konfirmasi sinkron setelah transaksi, serta swipe di antara menu HP.
+- Build dan 21 tes lulus. Uji Chromium mencakup pencatatan dengan 24 kategori, perlindungan limit yang sudah diisi, swipe, dan konfirmasi status sinkron dengan server tiruan. Bentuk snapshot masih kompatibel dengan backup lama dan tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Gabungkan Insight ke Cashflow
 
 - Satukan ringkasan arus kas, grafik pengeluaran, dan rincian kategori di Cashflow. Pakai periode gajian 25–24 sebagai default, dengan pilihan Minggu ini dan Bulan kalender. Tautan Insight lama membuka Cashflow dan pengaturan limit tetap di Budget.

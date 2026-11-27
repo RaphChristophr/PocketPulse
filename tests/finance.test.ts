@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { addDays, balanceFor, balanceSummary, budgetRows, csv, parseMoney, periodEnd, periodStart, segmentFor, validateLedger, weekStart, type Transaction } from '../src/domain/finance.ts'
+import { addDays, balanceFor, balanceSummary, budgetRows, csv, monthlyLimitsToCopy, parseMoney, periodEnd, periodStart, segmentFor, validateLedger, weekStart, type Transaction } from '../src/domain/finance.ts'
 import { demoLedger } from '../src/domain/demo.ts'
 
 test('tanggal 25 membuka periode gajian baru, termasuk batas tahun dan Februari', () => {
@@ -26,6 +26,24 @@ test('transfer mengubah kedua saldo tanpa menambah pengeluaran atau budget', () 
   assert.equal(balanceFor(bank, data.transactions) - balanceFor(bank, without), -100_000)
   assert.equal(balanceFor(cash, data.transactions) - balanceFor(cash, without), 100_000)
   assert.deepEqual(budgetRows(data, '2026-11-25'), budgetRows({ ...data, transactions: without }, '2026-11-25'))
+})
+
+test('arsip kategori mempertahankan saldo dan laporan, salin limit mengisi kategori aktif yang kosong', () => {
+  const data = demoLedger('2026-12-01')
+  const archived = validateLedger({
+    ...data,
+    categories: data.categories.map(item => item.id === 'internet' ? { ...item, archived: true } : item),
+    monthlyBudgets: [...data.monthlyBudgets, { periodStart: '2026-12-25', categoryId: 'makan', limitIdr: 0 }],
+  })
+  assert.deepEqual(balanceSummary(archived).available, balanceSummary(data).available)
+  assert.deepEqual(budgetRows(archived, '2026-11-25'), budgetRows(data, '2026-11-25'))
+  const copy = monthlyLimitsToCopy(archived, '2026-12-25')
+  assert.deepEqual(copy, [
+    { periodStart: '2026-12-25', categoryId: 'ojek', limitIdr: 400_000 },
+    { periodStart: '2026-12-25', categoryId: 'belanja', limitIdr: 650_000 },
+  ])
+  assert.deepEqual(monthlyLimitsToCopy({ ...archived, monthlyBudgets: [...archived.monthlyBudgets, ...copy] }, '2026-12-25'), [])
+  assert.throws(() => validateLedger({ ...archived, categories: [{ ...archived.categories[0], archived: 'true' }] }), /Kategori tidak valid/)
 })
 
 test('saldo tersedia mengecualikan tabungan dan dana darurat saat saldo dipindahkan', () => {

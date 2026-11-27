@@ -94,6 +94,7 @@
 .cashflow-payday progress::-webkit-progress-value { border-radius: 8px; background: var(--accent-bright); }
 .cashflow-payday progress::-moz-progress-bar { border-radius: 8px; background: var(--accent-bright); }
 .cashflow-totals, .cashflow-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cashflow-totals { margin-bottom: 16px; }
 .cashflow-totals > div {
   display: grid;
   grid-template-columns: auto 1fr;

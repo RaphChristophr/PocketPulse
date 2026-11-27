@@ -66,11 +66,15 @@ export function Cashflow({ data, day, filters, setPeriod, drillDown }: {
         <span>{t("Arus kas bersih")}</span>
         <strong>{net > 0 ? '+' : ''}{rupiah(net)}</strong>
       </div>
+      <div className="cashflow-totals">
+        <div><ArrowDownLeft size={18} aria-hidden="true" /><span>{t("Pemasukan")}</span><strong>{rupiah(income)}</strong></div>
+        <div className="cashflow-expenses"><ArrowUpRight size={18} aria-hidden="true" /><span>{t("Pengeluaran")}</span><strong>{rupiah(expense)}</strong></div>
+      </div>
       <div className="cashflow-chart-heading">
         <h2 className="cashflow-chart-label" id="cashflow-chart-label">{t(chartLabels[period])}</h2>
         <strong>{rupiah(selectedPoint.expense)}</strong>
       </div>
-      <div className="cashflow-chart" role="group" aria-labelledby="cashflow-chart-label">
+      <div className="cashflow-chart" role="group" aria-labelledby="cashflow-chart-label" data-no-swipe>
         {points.map(item => <button type="button" key={item.start} aria-pressed={item === selectedPoint}
           aria-label={`${weekly ? shortDate(item.start, true) : periodLabel(item.start)}, ${rupiah(item.expense)}`}
           onClick={() => weekly ? setChartDay(item.start) : setPeriod(period, item.start)}>
@@ -92,10 +96,6 @@ export function Cashflow({ data, day, filters, setPeriod, drillDown }: {
         <div><span>{t("Jadwal gajian")}</span><time dateTime={payday.payday}>{shortDate(payday.payday, true)}</time></div>
       </section>
     </section>
-    <div className="cashflow-totals">
-      <div><ArrowDownLeft size={18} aria-hidden="true" /><span>{t("Pemasukan")}</span><strong>{rupiah(income)}</strong></div>
-      <div className="cashflow-expenses"><ArrowUpRight size={18} aria-hidden="true" /><span>{t("Pengeluaran")}</span><strong>{rupiah(expense)}</strong></div>
-    </div>
     <section aria-labelledby="cashflow-categories-heading">
       <div className="panel-heading cashflow-categories-heading">
         <h2 id="cashflow-categories-heading">{t("Pengeluaran per kategori")}</h2>

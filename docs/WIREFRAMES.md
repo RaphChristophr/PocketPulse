@@ -13,6 +13,10 @@ Saldo tersedia                      Rp3.000.000
 Total saldo                         Rp4.000.000
 Tabungan & dana darurat               Rp1.000.000
 
+Sisa jatah hari ini                   Lihat budget
+  Makan                                   Rp45.000
+  Ojek                                    Rp25.000
+
 Tren pengeluaran                   25 Nov–24 Des ▾
 
 Saldo akun
@@ -47,7 +51,8 @@ Kembali                           Catat transaksi
 [ Pengeluaran ]      Pemasukan       Transfer
 
 Nominal                         Rp [ 20.000 ]
-Kategori                              [ Ojek ▾ ]
+Kategori cepat                         [ Ojek ]
+                      Semua kategori    Tambah kategori
 Akun                                [ Bank 1 ▾ ]
 Tanggal                          [ 1 Des 2026 ▾ ]
 Catatan                               [         ]
@@ -63,7 +68,9 @@ Setelah menyimpan Ojek Rp20.000, tampilkan konfirmasi “Transaksi tersimpan” 
 
 ```text
 Riwayat
+[ Cari catatan transaksi ]
 [ 1–6 Des ▾ ]    [ Semua akun ▾ ]   [ Semua kategori ▾ ]
+[ Semua jenis ▾ ]                  Hapus semua filter
 
 1 Desember
   Ojek           Bank 1                   −Rp20.000  >

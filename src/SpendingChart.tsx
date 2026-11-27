@@ -29,7 +29,7 @@ export function SpendingChart({ points, comparison, drillDown }: {
     Math.round(index * (points.length - 1) / Math.max(1, tickCount - 1)))
 
   return <>
-    <div className="trend-plot">
+    <div className="trend-plot" data-no-swipe>
       <svg viewBox={`0 0 ${width} 112`} preserveAspectRatio="none" aria-hidden="true">
         <defs><linearGradient id={gradient} x2="0%" y2="100%" gradientUnits="objectBoundingBox">
           <stop stopColor="currentColor" stopOpacity=".2" /><stop offset="1" stopColor="currentColor" stopOpacity="0" />

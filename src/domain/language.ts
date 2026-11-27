@@ -23,6 +23,30 @@ export function subscribeLanguage(listener: () => void) {
 
 const english = new Map(`
 Data masih dimuat.|The ledger is still loading.
+Arsipkan|Archive
+Aktifkan kembali|Restore category
+Diarsipkan|Archived
+Kategori diarsipkan|Category archived
+Kategori diaktifkan kembali|Category restored
+Kategori ini sudah diarsipkan.|This category has been archived.
+Cari kategori|Search categories
+Tidak ada kategori yang cocok.|No matching categories.
+Tutup daftar kategori|Close category list
+Pilih kategori yang sudah ada|Choose an existing category
+Favorit lainnya|More favorites
+Cari catatan transaksi|Search transaction notes
+Semua jenis|All types
+Hapus semua filter|Clear all filters
+Pratinjau salin limit|Preview limits to copy
+Salin limit periode lalu|Copy limits from the previous period
+Salin limit|Copy limits
+Limit periode sebelumnya tersalin|Previous period limits copied
+Tidak ada limit yang dapat disalin.|There are no limits to copy.
+Batal|Cancel
+Jatah untuk hari ini belum diatur.|No limits are set for today.
+Rincian jatah|Limit details
+Tersimpan di perangkat|Saved on this device
+Sudah tersinkron|Synced to cloud
 Buka menu browser untuk memasang PocketPulse.|Open your browser menu to install PocketPulse.
 Navigasi utama|Main navigation
 Ruang contoh|Demo workspace

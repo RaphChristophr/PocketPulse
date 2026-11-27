@@ -15,6 +15,7 @@ Account
 
 Category
   id, name, type: income | expense, iconKey, colorKey
+  archived?: boolean
 
 Transaction
   id, type, date, amountIdr, note?
@@ -34,6 +35,8 @@ WeeklyBudget
 Frontend menyimpan satu snapshot di store `ledger` IndexedDB, dengan koleksi `accounts`, `categories`, `transactions`, `monthlyBudgets`, dan `weeklyBudgets`. Validasi menerapkan keunikan ID dan kunci gabungan sesuai skema. Setiap perubahan membaca dan menyimpan snapshot dalam satu transaksi IndexedDB. Backup JSON memakai `schemaVersion` dan menyertakan kelima koleksi.
 
 `iconKey` dan `colorKey` merujuk pilihan bawaan yang tersedia offline. Form mengisi pilihan awal sesuai jenis sumber dana atau kategori. Simpan kedua pilihan pada akun atau kategori dan sertakan di backup. Riwayat dan budget membaca tampilannya dari ID yang sudah dirujuk, sehingga perubahan ikon atau warna mengikuti nama dan tampilan terbaru.
+
+Kategori dengan `archived: true` tetap tersimpan dengan ID yang sama. Riwayat dan limit lama tetap merujuk ke kategori tersebut. Pemilih transaksi baru dan penyalinan limit hanya menawarkan kategori aktif. Snapshot lama tanpa `archived` dibaca sebagai kategori aktif.
 
 ## Validasi
 

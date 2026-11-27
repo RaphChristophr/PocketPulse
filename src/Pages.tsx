@@ -1,7 +1,7 @@
 import { getLanguage, setLanguage, t } from './domain/language.ts'
 import { useRef, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, Download, FileUp, Plus, Smartphone } from 'lucide-react'
-import { accountTypes, addDays, addMonths, budgetRows, categoryContains, categoryLabel, csv, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, spentBy, today, transactionNames, validateLedger, type Ledger, type Segment } from './domain/finance.ts'
+import { accountTypes, addDays, addMonths, budgetRows, categoryContains, categoryLabel, csv, emptyLedger, monthlyLimitsToCopy, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, spentBy, today, transactionNames, validateLedger, type Ledger, type Segment } from './domain/finance.ts'
 import { TransactionRow } from './Dashboard'
 import { type Commit, type Editor } from './Editors'
 import { download, Empty, Glyph, Select } from './ui'
@@ -20,9 +20,14 @@ export function History({ data, filters, setFilters, edit }: {
   const start = filters.get('dari') ?? ''
   const end = filters.get('sampai') ?? ''
   const segment = filters.get('bagian') as Segment | null
+  const kind = filters.get('jenis') ?? ''
+  const hasKind = Object.hasOwn(transactionNames, kind)
+  const query = filters.get('cari') ?? ''
+  const search = query.trim().toLocaleLowerCase()
   const rows = [...data.transactions].filter(tx => {
     if ((start && tx.date < start) || (end && tx.date > end) || (segment && segmentFor(tx.date) !== segment)) return false
-    if (filters.get('jenis') === 'expense' && tx.type !== 'expense') return false
+    if (hasKind && tx.type !== kind) return false
+    if (search && !tx.note.toLocaleLowerCase().includes(search)) return false
     if (tx.type === 'transfer') return !category && (!account || tx.fromAccountId === account || tx.toAccountId === account)
     return (!category || categoryContains(data.categories, category, tx.categoryId)) && (!account || tx.accountId === account)
   }).sort((left, right) => right.date.localeCompare(left.date))
@@ -37,6 +42,8 @@ export function History({ data, filters, setFilters, edit }: {
     <div className="page-title"><div><h1>{t("Riwayat")}</h1><p>{t("Periksa dan koreksi setiap transaksi.")}</p></div>
       <button className="button primary" onClick={() => edit({ kind: 'transaction' })}><Plus size={19} /> {t("Catat transaksi")}</button></div>
     <section className="panel history-panel">
+      <label className="field history-search"><span>{t("Cari catatan transaksi")}</span><input type="search" value={query}
+        onChange={event => change('cari', event.target.value)} /></label>
       <div className="filter-grid">
         <label className="field"><span>{t("Dari")}</span><input type="date" value={start} onChange={event => change('dari', event.target.value)} /></label>
         <label className="field"><span>{t("Sampai")}</span><input type="date" value={end} onChange={event => change('sampai', event.target.value)} /></label>
@@ -44,8 +51,14 @@ export function History({ data, filters, setFilters, edit }: {
           {data.accounts.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>
         <label className="field"><span>{t("Kategori")}</span><Select value={category} onChange={event => change('kategori', event.target.value)}><option value="">{t("Semua kategori")}</option>
           {data.categories.map(item => <option key={item.id} value={item.id}>{categoryLabel(data.categories, item)}</option>)}</Select></label>
+        <label className="field"><span id="history-kind-label">{t("Jenis")}</span><Select aria-labelledby="history-kind-label" value={kind}
+          onChange={event => change('jenis', event.target.value)}><option value="">{t("Semua jenis")}</option>
+          {Object.entries(transactionNames).map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</Select></label>
       </div>
-      {segment && <div className="filter-note"><span>{t(segments[segment])}</span><button className="text-button" onClick={() => change('bagian', '')}>{t("Hapus filter bagian")}</button></div>}
+      {(query || start || end || account || category || kind || segment) && <div className="filter-note">
+        {segment && <><span>{t(segments[segment])}</span><button className="text-button" onClick={() => change('bagian', '')}>{t("Hapus filter bagian")}</button></>}
+        <button className="text-button" onClick={() => setFilters(new URLSearchParams())}>{t("Hapus semua filter")}</button>
+      </div>}
       {rows.length ? rows.map(tx => <TransactionRow key={tx.id} tx={tx} data={data} onClick={() => edit({ kind: 'transaction', item: tx })} />)
         : <Empty>{t("Tidak ada transaksi untuk filter ini.")}</Empty>}
     </section>
@@ -58,23 +71,41 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
   save: Commit; notify: (message: string) => void; drillDown: (category: string, start: string, end: string, section?: Segment) => void;
 }) {
   const [copying, setCopying] = useState(false)
+  const [previewPeriod, setPreviewPeriod] = useState('')
   const weekly = mode === 'weekly'
   const start = weekly ? week : period
   const end = weekly ? addDays(start, 6) : periodEnd(start)
   const previous = addDays(week, -7)
   const categories = data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== titheCategory.id)
+  const activeCategories = new Set(categories.filter(item => !item.archived).map(item => item.id))
+  const monthlyPreview = weekly ? [] : monthlyLimitsToCopy(data, period)
   const weekHasLimits = data.weeklyBudgets.some(row => row.weekStart === week)
-  const lastWeekHasLimits = data.weeklyBudgets.some(row => row.weekStart === previous)
+  const lastWeekHasLimits = data.weeklyBudgets.some(row => row.weekStart === previous && activeCategories.has(row.categoryId))
   async function copy() {
     setCopying(true)
     try {
       await save(current => {
         if (current.weeklyBudgets.some(row => row.weekStart === week)) throw new Error(t("Minggu ini sudah punya limit."))
-        const source = current.weeklyBudgets.filter(row => row.weekStart === previous)
+        const active = new Set(current.categories.filter(item => !item.archived).map(item => item.id))
+        const source = current.weeklyBudgets.filter(row => row.weekStart === previous && active.has(row.categoryId))
         if (!source.length) throw new Error(t("Minggu sebelumnya belum punya limit."))
         return { ...current, weeklyBudgets: [...current.weeklyBudgets, ...source.map(row => ({ ...row, weekStart: week }))] }
       })
       notify(t("Limit minggu sebelumnya tersalin"))
+    } catch (error) { notify(error instanceof Error ? error.message : t("Limit gagal disalin.")) }
+    finally { setCopying(false) }
+  }
+  async function copyMonth() {
+    const approved = new Map(monthlyPreview.map(row => [row.categoryId, row.limitIdr]))
+    setCopying(true)
+    try {
+      await save(current => {
+        const limits = monthlyLimitsToCopy(current, period).filter(row => approved.get(row.categoryId) === row.limitIdr)
+        if (!limits.length) throw new Error(t("Tidak ada limit yang dapat disalin."))
+        return { ...current, monthlyBudgets: [...current.monthlyBudgets, ...limits] }
+      })
+      setPreviewPeriod('')
+      notify(t("Limit periode sebelumnya tersalin"))
     } catch (error) { notify(error instanceof Error ? error.message : t("Limit gagal disalin.")) }
     finally { setCopying(false) }
   }
@@ -89,15 +120,29 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
         <span><CalendarDays size={16} />{rangeLabel(start, end)}</span>
         <button className="icon-button" aria-label={t("Periode berikutnya")} onClick={() => step(1)}><ChevronRight size={18} /></button></div>
       {weekly && !weekHasLimits && lastWeekHasLimits && <button className="button secondary" disabled={copying} onClick={() => void copy()}>{t("Salin limit minggu lalu")}</button>}
+      {monthlyPreview.length > 0 && <button className="button secondary" type="button" disabled={copying} aria-expanded={previewPeriod === period}
+        onClick={() => setPreviewPeriod(previewPeriod === period ? '' : period)}>{t("Salin limit periode lalu")}</button>}
     </div>
+    {previewPeriod === period && monthlyPreview.length > 0 && <section className="panel budget-copy-preview" aria-labelledby="budget-copy-heading">
+      <h2 id="budget-copy-heading">{t("Pratinjau salin limit")}</h2>
+      <p className="muted">{rangeLabel(period, end)}</p>
+      <ul>{monthlyPreview.map(row => <li key={row.categoryId}>
+        <span>{categories.find(item => item.id === row.categoryId)?.name}</span><strong>{rupiah(row.limitIdr)}</strong>
+      </li>)}</ul>
+      <div className="category-actions">
+        <button className="button secondary" type="button" disabled={copying} onClick={() => setPreviewPeriod('')}>{t("Batal")}</button>
+        <button className="button primary" type="button" disabled={copying} onClick={() => void copyMonth()}>{t("Salin limit")}</button>
+      </div>
+    </section>}
     <div className="budget-stack">{blocks.map(segment => {
       const rows = budgetRows(data, start, segment)
       const listed = categories.filter(item => rows.some(row => row.categoryId === item.id)
         || spentBy(data.transactions, item.id, start, end, segment, data.categories) > 0)
+      const canAdd = categories.some(item => !item.archived && !rows.some(row => row.categoryId === item.id))
       return <section className="panel budget-panel" key={segment ?? 'monthly'}>
         <div className="panel-heading"><div><h2>{segment ? t(segments[segment]) : t("Periode gajian")}</h2>
           <p>{segment ? t("Jatah per kategori") : rangeLabel(start, end)}</p></div>
-          {rows.length < categories.length && <button className="button secondary" onClick={() => edit({ kind: 'budget', start, segment })}><Plus size={17} /> {t("Atur limit")}</button>}</div>
+          {canAdd && <button className="button secondary" onClick={() => edit({ kind: 'budget', start, segment })}><Plus size={17} /> {t("Atur limit")}</button>}</div>
         {listed.length ? listed.map(category => {
           const row = rows.find(item => item.categoryId === category.id)
           const spent = row?.spent ?? spentBy(data.transactions, category.id, start, end, segment, data.categories)
@@ -108,7 +153,7 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
             <div className="budget-row-value"><span>{t("Jatah")}</span><strong>{row ? rupiah(row.limitIdr) : t("Belum diatur")}</strong></div>
             <div className="budget-row-value"><span>{t("Terpakai")}</span><strong>{rupiah(spent)}</strong></div>
             <div className="budget-row-value"><span>{t("Sisa")}</span><strong className={remaining < 0 ? 'danger-text' : ''}>{row ? remaining < 0 ? t("Lewat {amount}", { amount: rupiah(-remaining) }) : rupiah(remaining) : '—'}</strong></div>
-            <button className="text-button" onClick={() => edit({ kind: 'budget', start, segment, categoryId: category.id, limit: row?.limitIdr })}>{row ? 'Edit' : t("Atur")}</button>
+            {(row || !category.archived) && <button className="text-button" onClick={() => edit({ kind: 'budget', start, segment, categoryId: category.id, limit: row?.limitIdr })}>{row ? 'Edit' : t("Atur")}</button>}
           </div>
         }) : <Empty>{categories.length ? t("Belum ada limit atau pengeluaran di bagian ini.") : t("Tambahkan kategori pengeluaran di Pengaturan.")}</Empty>}
       </section>
@@ -185,7 +230,7 @@ export function Settings({ data, save, edit, notify, install, installed, account
       <section className="panel"><div className="panel-heading"><div><h2>{t("Kategori")}</h2><p>{t("Pengelompokan transaksi")}</p></div>
         <button className="button secondary" onClick={() => edit({ kind: 'category' })}><Plus size={16} /> {t("Tambah")}</button></div>
         {data.categories.length ? data.categories.filter(item => item.id !== titheCategory.id).map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'category', item })}>
-          <Glyph item={item} /><span><strong>{categoryLabel(data.categories, item)}</strong><small>{t(transactionNames[item.type])}</small></span><span className="text-button">Edit</span>
+          <Glyph item={item} /><span><strong>{categoryLabel(data.categories, item)}</strong><small>{t(transactionNames[item.type])}{item.archived && ` · ${t("Diarsipkan")}`}</small></span><span className="text-button">Edit</span>
         </button>) : <Empty>{t("Belum ada kategori.")}</Empty>}
       </section>
       <section className="panel data-panel"><div className="panel-heading"><div><h2>{t("Data dan backup")}</h2><p>{t("Data tersimpan di perangkat ini.")}</p></div></div>
