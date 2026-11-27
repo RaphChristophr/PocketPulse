@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Activity, Bell, ChevronLeft, ChevronRight, Plus, Settings2 } from 'lucide-react'
 import { getLocale, t } from './domain/language.ts'
-import { addDays, addMonths, balanceSummary, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
-import { spendingDays } from './domain/spending.ts'
+import { addDays, addMonths, balanceSummary, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { spendingCategories, spendingDays } from './domain/spending.ts'
 import { Empty, Glyph } from './ui'
 import { SpendingChart } from './SpendingChart'
 
@@ -35,12 +35,6 @@ function PeriodControl({ period, setPeriod }: Pick<SpendingProps, 'period' | 'se
 
 function CategoryProgress({ value, color }: { value: number; color: string }) {
   return <span className="spending-progress" data-color={color} aria-hidden="true"><i style={{ inlineSize: `${Math.min(100, value)}%` }} /></span>
-}
-
-function spendingCategories(data: Ledger, start: string, end: string) {
-  return data.categories.filter(category => category.type === 'expense' && !category.parentId)
-    .map(category => ({ category, spent: spentBy(data.transactions, category.id, start, end, undefined, data.categories) }))
-    .sort((left, right) => right.spent - left.spent)
 }
 
 export function Dashboard({ data, day, period, setPeriod, drillDown, openTransaction, initials, reminders }: SpendingProps & {

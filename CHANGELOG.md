@@ -4,6 +4,12 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Cashflow berdasarkan bulan kalender
+
+- Tambah menu Cashflow dengan grafik pengeluaran interaktif, total pemasukan dan pengeluaran, arus kas bersih, serta kategori yang menaut ke Riwayat. Rekap memakai tanggal 1 hingga akhir bulan.
+- Tambah **To payday** dengan tanggal, sisa hari, dan progres menuju tanggal 25 di WIB.
+- Build dan 18 tes lulus. Uji browser lokal mencakup navigasi pada layar 320 piksel, pergantian bulan, dan filter Riwayat. Perubahan siap dikirim bersama perbaikan berikutnya dan tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Tambahan ikon kategori dan sumber dana
 
 - Tambahkan 16 ikon, termasuk kereta, mobil, bus, taksi, bahan bakar, parkir, dan kebutuhan harian.

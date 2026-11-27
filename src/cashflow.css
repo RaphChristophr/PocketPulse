@@ -1,0 +1,119 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: PocketPulse · data: ledger · v2.0.0 */
+/* Keep the seven months on one line and expose exact Rupiah values for each bar. */
+.cashflow {
+  --cashflow-rule: color-mix(in srgb, var(--on-dark) 20%, transparent);
+  --cashflow-hatch: color-mix(in srgb, var(--dark-muted) 78%, transparent);
+  --cashflow-plot: 124px;
+  display: grid;
+  gap: 20px;
+  max-inline-size: 750px;
+  margin-inline: auto;
+  font-variant-numeric: tabular-nums;
+}
+.cashflow-overview {
+  color: var(--on-dark);
+  background: var(--hero-gradient);
+  border-radius: var(--sheet-radius);
+  padding: clamp(16px, 4vw, 24px);
+}
+.cashflow-header, .cashflow-payday > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cashflow-header h1 { font-size: 1.7rem; text-wrap: balance; }
+.cashflow-month { display: flex; align-items: center; gap: 4px; font-size: .83rem; }
+.cashflow-month .icon-button { width: 44px; height: 44px; color: var(--on-dark); background: transparent; }
+.cashflow-month .icon-button:hover { background: var(--cashflow-rule); }
+.cashflow-month .icon-button:disabled { background: transparent; color: var(--dark-muted); opacity: .55; }
+.cashflow-overview button:focus-visible { outline-color: var(--accent-bright); }
+.cashflow button:not(:disabled):active { transform: translateY(1px); }
+.cashflow-net { display: grid; gap: 4px; margin-block: 12px 16px; }
+.cashflow-net span, .cashflow-chart-label { color: var(--dark-muted); font-size: .84rem; font-weight: 570; }
+.cashflow-net strong { font-size: 2rem; line-height: 1.1; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.cashflow-chart-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.cashflow-chart-heading strong { font-size: .84rem; }
+.cashflow-chart { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); position: relative; margin-top: 8px; }
+.cashflow-chart::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--cashflow-plot);
+  border-block-end: 1px solid var(--cashflow-rule);
+  background: repeating-linear-gradient(to top, transparent 0 calc(33.33% - 1px), var(--cashflow-rule) calc(33.33% - 1px) 33.33%);
+  pointer-events: none;
+}
+.cashflow-chart button {
+  position: relative;
+  display: grid;
+  grid-template-rows: var(--cashflow-plot) 34px;
+  justify-items: center;
+  align-items: end;
+  padding: 0 2px;
+  border: 0;
+  border-radius: var(--control);
+  background: transparent;
+  color: var(--dark-muted);
+  min-width: 0;
+  font-size: .7rem;
+}
+.cashflow-chart button:hover { background: var(--cashflow-rule); color: var(--on-dark); }
+.cashflow-bar { width: 73%; max-width: 42px; height: 100%; display: flex; align-items: end; }
+.cashflow-bar i {
+  display: block;
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: repeating-linear-gradient(135deg, var(--cashflow-hatch) 0 1px, transparent 1px 5px);
+}
+.cashflow-chart button[aria-pressed="true"] .cashflow-bar i { background: var(--accent-bright); }
+.cashflow-tick { padding: 4px; line-height: 1.2; border-radius: 7px; }
+.cashflow-chart button[aria-pressed="true"] .cashflow-tick { color: var(--accent-deep); background: var(--accent-bright); font-weight: 700; }
+.cashflow-payday { display: grid; gap: 8px; border-top: 1px solid var(--cashflow-rule); margin-top: 16px; padding-top: 16px; }
+.cashflow-payday strong { color: var(--accent-bright); }
+.cashflow-payday > .cashflow-payday-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; font-size: .79rem; }
+.cashflow-payday > div:last-child { color: var(--dark-muted); font-size: .79rem; }
+.cashflow-payday progress {
+  appearance: none;
+  border: 0;
+  width: 100%;
+  height: 12px;
+  accent-color: var(--accent-bright);
+  border-radius: 8px;
+  background: var(--cashflow-rule);
+}
+.cashflow-payday progress::-webkit-progress-bar { border-radius: 8px; background: var(--cashflow-rule); }
+.cashflow-payday progress::-webkit-progress-value { border-radius: 8px; background: var(--accent-bright); }
+.cashflow-payday progress::-moz-progress-bar { border-radius: 8px; background: var(--accent-bright); }
+.cashflow-totals, .cashflow-categories { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.cashflow-totals > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 8px;
+  border-radius: var(--radius);
+  padding: 12px;
+  background: var(--accent-light);
+  color: var(--accent-deep);
+}
+.cashflow-totals span { font-size: .83rem; }
+.cashflow-totals strong { grid-column: 1 / -1; font-size: 1.14rem; overflow-wrap: anywhere; }
+.cashflow-categories-heading { align-items: center; margin-bottom: 8px; }
+.cashflow-categories-heading a { display: inline-flex; align-items: center; min-height: 44px; }
+.cashflow-categories button {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  text-align: left;
+}
+.cashflow-categories button:hover { border-color: var(--accent); }
+.cashflow-categories button > span:not(.glyph) { justify-self: end; color: var(--muted); font-size: .8rem; }
+.cashflow-categories button :is(strong, b) { grid-column: 1 / -1; overflow-wrap: anywhere; }
+.cashflow-categories button strong { margin-top: 4px; }
+.cashflow-categories button b { font-size: .86rem; color: var(--muted); }

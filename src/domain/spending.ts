@@ -1,4 +1,10 @@
-import { addDays, inRange, type Transaction } from './finance.ts'
+import { addDays, inRange, spentBy, type Ledger, type Transaction } from './finance.ts'
+
+export function spendingCategories(data: Ledger, start: string, end: string) {
+  return data.categories.filter(category => category.type === 'expense' && !category.parentId)
+    .map(category => ({ category, spent: spentBy(data.transactions, category.id, start, end, undefined, data.categories) }))
+    .sort((left, right) => right.spent - left.spent)
+}
 
 export function spendingDays(transactions: Transaction[], start: string, end: string) {
   const totals = new Map<string, number>()

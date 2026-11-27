@@ -4,6 +4,7 @@ import { balanceFor, validateLedger, type Transaction } from '../src/domain/fina
 import { demoLedger } from '../src/domain/demo.ts'
 import { titheAllocations, titheCategory } from '../src/domain/tithe.ts'
 import { spendingDays } from '../src/domain/spending.ts'
+import { cashflowMonths, monthEnd, paydayProgress } from '../src/domain/cashflow.ts'
 
 test('Tithe allocation leaves balances alone, and linked payments reconcile', () => {
   const data = demoLedger('2026-12-01')
@@ -29,4 +30,29 @@ test('daily chart respects pay period boundary and excludes transfers', () => {
   assert.deepEqual(rows, [
     { date: '2026-11-24', spent: 0 }, { date: '2026-11-25', spent: 475000 },
   ])
+})
+
+test('Cashflow groups by calendar month across payday, leap day, and year boundaries', () => {
+  const data = demoLedger('2024-02-29')
+  const expense = data.transactions.find(tx => tx.type === 'expense')!
+  data.transactions.push(
+    { ...expense, id: 'december', date: '2023-12-31', amountIdr: 30_000 },
+    { ...expense, id: 'before-payday', date: '2024-02-24', amountIdr: 10_000 },
+    { ...expense, id: 'march', date: '2024-03-01', amountIdr: 20_000 },
+  )
+  assert.equal(monthEnd('2024-02-01'), '2024-02-29')
+  assert.equal(monthEnd('2026-12-01'), '2026-12-31')
+  assert.deepEqual(cashflowMonths(data.transactions, '2024-03-01').slice(-4), [
+    { start: '2023-12-01', income: 0, expense: 30_000 },
+    { start: '2024-01-01', income: 0, expense: 0 },
+    { start: '2024-02-01', income: 3_250_000, expense: 485_000 },
+    { start: '2024-03-01', income: 0, expense: 20_000 },
+  ])
+})
+
+test('To payday reaches 100% on the 25th and starts the next cycle the following day', () => {
+  assert.deepEqual(paydayProgress('2026-12-24'), { payday: '2026-12-25', daysLeft: 1, percent: 97 })
+  assert.deepEqual(paydayProgress('2026-12-25'), { payday: '2026-12-25', daysLeft: 0, percent: 100 })
+  assert.deepEqual(paydayProgress('2026-12-26'), { payday: '2027-01-25', daysLeft: 30, percent: 3 })
+  assert.deepEqual(paydayProgress('2024-02-29'), { payday: '2024-03-25', daysLeft: 25, percent: 14 })
 })

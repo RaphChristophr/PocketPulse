@@ -22,6 +22,12 @@ Jika belum ada kategori yang bisa dipilih untuk jenis transaksi, isi nama katego
 
 Saat membuat atau mengedit kategori atau sumber dana, pengguna bisa memilih ikon dan warna secara terpisah dari pilihan bawaan. Form menyediakan pilihan awal dan pratinjau sebelum disimpan. Tampilkan ikon berwarna bersama nama pada pemilih transaksi, Riwayat, Budget, dan Ringkasan sesuai konteks. Misalnya, Makan memakai ikon alat makan berwarna oranye dan Tunai memakai ikon dompet berwarna hijau.
 
+## Cashflow
+
+Cashflow punya menu sendiri. Pilih bulan untuk melihat grafik pengeluaran, total pemasukan dan pengeluaran, arus kas bersih, dan bagian pengeluaran tiap kategori. Ketuk kategori untuk membuka transaksi pada bulan itu. Cashflow memakai bulan kalender, dari tanggal 1 sampai hari terakhir bulan tersebut. Jadwal Budget mengikuti periode gajian 25–24.
+
+**To payday** menampilkan progres, sisa hari, dan tanggal gajian berdasarkan hari ini di WIB. Jadwalnya tanggal 25 setiap bulan. Pada tanggal 25 tampilkan **Gajian hari ini**.
+
 ## Akses dari HP
 
 PocketPulse bisa dipasang di layar utama HP sebagai PWA. Setelah aplikasi dibuka online dan siap dipakai offline, pengguna bisa membuka ulang aplikasi, mencatat atau mengoreksi transaksi, melihat saldo dan budget, serta mengubah limit tanpa koneksi. Perubahan tersimpan lokal dan langsung tercermin di ringkasan.

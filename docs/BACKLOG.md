@@ -1,5 +1,12 @@
 # Backlog PocketPulse
 
+## Menu Cashflow dan hitung mundur gajian
+
+**Status** — Diimplementasikan dan diuji lokal. Push ke `dev` menunggu pengiriman bersama perbaikan berikutnya.
+
+- Tambahkan menu **Cashflow** dengan grafik batang yang bisa dipilih, arus kas bersih, total pemasukan dan pengeluaran, serta rincian kategori yang membuka Riwayat.
+- Gunakan bulan kalender untuk Cashflow. **To payday** menghitung sisa hari ke tanggal 25 berdasarkan hari ini di WIB.
+
 ## Layout mobile untuk Ringkasan, Insight, dan Catat transaksi
 
 **Status** — Diimplementasikan. Tampilan HP dan pencatatan pengeluaran diuji di browser dengan data contoh.
