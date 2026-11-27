@@ -1,6 +1,7 @@
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, PiggyBank, Plus, Wallet } from 'lucide-react'
-import { addMonths, balanceFor, budgetRows, categoryLabel, inRange, periodEnd, rangeLabel, rupiah, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { addMonths, balanceFor, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { Empty, Glyph } from './ui.tsx'
+import { SpendingChart } from './SpendingChart'
 
 export function TransactionRow({ tx, data, onClick }: { tx: Transaction; data: Ledger; onClick: () => void }) {
   const category = tx.type === 'transfer' ? undefined : data.categories.find(item => item.id === tx.categoryId)
@@ -36,6 +37,12 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
   const monthLimit = sum(monthly.map(item => item.limitIdr))
   const weekSpent = sum(weekly.map(item => item.spent))
   const monthSpent = sum(monthly.map(item => item.spent))
+  const todaySegment = segmentFor(day)
+  const todayRows = budgetRows(data, week, todaySegment)
+  const activePeriodRows = budgetRows(data, periodStart(day))
+  const todayCategories = data.categories.filter(item => todayRows.some(row => row.categoryId === item.id)
+    || activePeriodRows.some(row => row.categoryId === item.id))
+  const remaining = (row: { limitIdr: number; spent: number } | undefined) => row ? rupiah(row.limitIdr - row.spent) : 'Belum diatur'
   return <>
     <div className="page-title"><div><h1>Ringkasan</h1><p>Saldo, pengeluaran, dan sisa budget kamu.</p></div>
       <button className="button primary page-action" onClick={() => openTransaction()}><Plus size={19} /> Catat transaksi</button>
@@ -71,6 +78,12 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
           <BudgetSummary label="Minggu ini" spent={weekSpent} limit={weekLimit} hasBudget={weekly.length > 0} />
           <BudgetSummary label="Periode gajian" spent={monthSpent} limit={monthLimit} hasBudget={monthly.length > 0} />
         </div>
+        {todayCategories.length > 0 && <div className="today-budget">
+          <div className="today-row"><strong>Sisa jatah hari ini</strong><span>{segments[todaySegment]}</span><span>Periode gajian</span></div>
+          {todayCategories.map(item => <div className="today-row" key={item.id}><span>{item.name}</span>
+            <strong>{remaining(todayRows.find(row => row.categoryId === item.id))}</strong>
+            <strong>{remaining(activePeriodRows.find(row => row.categoryId === item.id))}</strong></div>)}
+        </div>}
       </section>
       <section className="panel top-expenses">
         <div className="panel-heading"><div><h2>Pengeluaran terbesar</h2><p>Per kategori di periode ini</p></div></div>
@@ -87,6 +100,7 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
         {recent.length ? recent.map(tx => <TransactionRow key={tx.id} tx={tx} data={data} onClick={() => openTransaction(tx)} />)
           : <Empty>Belum ada transaksi. Tambahkan transaksi pertamamu.</Empty>}
       </section>
+      <SpendingChart data={data} day={day} period={period} drillDown={drillDown} />
     </div>
   </>
 }

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Check, X } from 'lucide-react'
-import { accountTypes, categoryLabel, colors, icons, parseMoney, segments, transactionNames, type Account, type Category, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { accountTypes, categoryLabel, colors, icons, parseMoney, rupiah, segments, transactionNames, type Account, type Category, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { titheAllocations, titheAmount, titheCategory } from './domain/tithe.ts'
 import { AmountInput, Glyph, Select, VisualPicker } from './ui.tsx'
 
 export type Change = (current: Ledger) => Ledger
 export type Commit = (change: Change) => Promise<Ledger>
-export type Editor = { kind: 'transaction'; item?: Transaction } | { kind: 'account'; item?: Account }
+export type Editor = { kind: 'transaction'; item?: Transaction; titheIncomeId?: string } | { kind: 'account'; item?: Account }
   | { kind: 'category'; item?: Category } | { kind: 'budget'; start: string; segment?: Segment; categoryId?: string; limit?: number }
 
 export function replaceById<T extends { id: string }>(list: T[], item: T) {
@@ -34,6 +35,12 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const form = new FormData(event.currentTarget)
+    if (editor.kind === 'transaction' && editor.item?.type === 'income') {
+      const income = editor.item
+      const paid = titheAllocations(data.transactions).find(row => row.income.id === income.id)?.paid ?? 0
+      if (paid && (Number(read(form, 'amount')) !== income.amountIdr || !form.has('tithe') || read(form, 'date') !== income.date)
+        && !window.confirm(`Tithe ${rupiah(paid)} sudah dibayar. Perubahan akan menghitung ulang alokasi. Lanjutkan?`)) return
+    }
     void run(async () => {
       const result = await save(current => {
         if (editor.kind === 'transaction') {
@@ -42,8 +49,15 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
           if (base.date > day) throw new Error('Tanggal transaksi maksimal hari ini.')
           const tx: Transaction = type === 'transfer'
             ? { ...base, type, fromAccountId: read(form, 'from'), toAccountId: read(form, 'to') }
-            : { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'category') }
+            : type === 'income'
+              ? { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'category'), ...(form.has('tithe') ? { tithe: true } : {}) }
+              : { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'titheIncomeId') ? titheCategory.id : read(form, 'category'),
+                ...(read(form, 'titheIncomeId') ? { titheIncomeId: read(form, 'titheIncomeId') } : {}) }
           form.set('savedId', tx.id)
+          if (tx.type === 'expense' && tx.titheIncomeId) return { ...current,
+            categories: current.categories.some(item => item.id === titheCategory.id) ? current.categories : [...current.categories, titheCategory],
+            transactions: replaceById(current.transactions, tx),
+          }
           const favorites = current.favorites ?? []
           if (tx.type === 'expense' && read(form, 'favoriteAction')) {
             const others = favorites.filter(item => item.accountId !== tx.accountId || item.categoryId !== tx.categoryId)
@@ -100,7 +114,7 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
     <div className="dialog-heading"><h2 id="editor-heading">{title}</h2><button type="button" className="icon-button" onClick={close} disabled={busy} aria-label="Tutup"><X size={22} /></button></div>
     <form onSubmit={submit}>
       <fieldset className="fields" disabled={busy}>
-        {editor.kind === 'transaction' && <TransactionFields data={data} day={day} tx={editor.item} />}
+        {editor.kind === 'transaction' && <TransactionFields data={data} day={day} tx={editor.item} titheIncomeId={editor.titheIncomeId} />}
         {editor.kind === 'account' && <AccountFields day={day} account={editor.item} />}
         {editor.kind === 'category' && <CategoryFields data={data} category={editor.item} />}
         {editor.kind === 'budget' && <BudgetFields data={data} editor={editor} />}
@@ -118,7 +132,11 @@ function Label({ title, children }: { title: string; children: ReactNode }) {
   return <label className="field"><span>{title}</span>{children}</label>
 }
 
-function TransactionFields({ data, day, tx }: { data: Ledger; day: string; tx?: Transaction }) {
+function TransactionFields({ data, day, tx, titheIncomeId }: { data: Ledger; day: string; tx?: Transaction; titheIncomeId?: string }) {
+  const linkedId = titheIncomeId ?? (tx?.type === 'expense' ? tx.titheIncomeId : undefined)
+  const linkedAllocation = linkedId ? titheAllocations(data.transactions).find(row => row.income.id === linkedId) : undefined
+  const [amount, setAmount] = useState(tx?.amountIdr ?? linkedAllocation?.outstanding ?? 0)
+  const [tithe, setTithe] = useState(tx?.type === 'income' && tx.tithe === true)
   const [type, setType] = useState<Transaction['type']>(tx?.type ?? 'expense')
   const [account, setAccount] = useState(tx?.type !== 'transfer' ? tx?.accountId ?? '' : '')
   const [category, setCategory] = useState(tx?.type !== 'transfer' ? tx?.categoryId ?? '' : '')
@@ -128,37 +146,41 @@ function TransactionFields({ data, day, tx }: { data: Ledger; day: string; tx?: 
   const favorites = data.favorites ?? []
   const favoriteExists = favorites.some(item => item.accountId === account && item.categoryId === category)
   const isFavorite = favoriteAction ? favoriteAction === 'add' : favoriteExists
-  const matched = data.categories.filter(item => item.type === type).map(item => ({ ...item, name: categoryLabel(data.categories, item) }))
+  const matched = data.categories.filter(item => item.type === type && item.id !== titheCategory.id).map(item => ({ ...item, name: categoryLabel(data.categories, item) }))
   const accountField = (title: string, inputName: string, value: string, update: (value: string) => void) =>
     <VisualPicker label={title} name={inputName} value={value} placeholder="Pilih sumber dana" options={data.accounts}
       onChange={value => { update(value); setFavoriteAction('') }} />
   return <>
-    <div className="segmented">{Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
-      onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{label}</button>)}</div>
+    {linkedId ? <p className="muted">Pembayaran Tithe</p> : <div className="segmented">{Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
+      onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{label}</button>)}</div>}
     <input type="hidden" name="type" value={type} />
-    {type === 'expense' && !tx && favorites.length > 0 && <div className="favorite-buttons" aria-label="Favorit transaksi">
+    {type === 'expense' && !tx && !linkedId && favorites.length > 0 && <div className="favorite-buttons" aria-label="Favorit transaksi">
       {favorites.map(item => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
         setAccount(item.accountId)
         setCategory(item.categoryId)
         setFavoriteAction('')
       }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>)}
     </div>}
-    <AmountInput name="amount" label="Nominal" autoFocus initial={tx?.amountIdr} />
+    <AmountInput name="amount" label="Nominal" autoFocus initial={tx?.amountIdr ?? linkedAllocation?.outstanding} onAmount={raw => setAmount(Number(raw))} />
     {type === 'transfer' ? <>
       {accountField('Akun asal', 'from', from, setFrom)}
       {accountField('Akun tujuan', 'to', to, setTo)}
     </> : <>
-      <VisualPicker label="Kategori" name="category" value={category} options={matched} placeholder="Pilih kategori"
-        onChange={value => { setCategory(value); setFavoriteAction('') }} />
+      {linkedId ? <><input type="hidden" name="titheIncomeId" value={linkedId} />
+        <p className="muted">{linkedAllocation?.income.note || 'Alokasi Tithe yang dipilih'}</p></>
+        : <VisualPicker label="Kategori" name="category" value={category} options={matched} placeholder="Pilih kategori"
+          onChange={value => { setCategory(value); setFavoriteAction('') }} />}
       {accountField('Sumber dana', 'account', account, setAccount)}
-      {type === 'expense' && account && category && <>
+      {type === 'expense' && !linkedId && account && category && <>
         <input type="hidden" name="favoriteAction" value={favoriteAction} />
         <label className="checkbox"><input type="checkbox" checked={isFavorite} onChange={event => {
           setFavoriteAction(event.target.checked === favoriteExists ? '' : event.target.checked ? 'add' : 'remove')
         }} /> Simpan sebagai favorit</label>
       </>}
     </>}
-    <Label title="Tanggal"><input required name="date" type="date" max={day} defaultValue={tx?.date ?? day} /></Label>
+    {type === 'income' && <label className="checkbox"><input type="checkbox" name="tithe" checked={tithe} onChange={event => setTithe(event.target.checked)} />
+      Sisihkan Tithe (10%){tithe && Number.isSafeInteger(amount) && amount >= 0 ? ` · ${rupiah(titheAmount(amount))}` : ''}</label>}
+    <Label title="Tanggal"><input required name="date" type="date" min={linkedAllocation?.income.date} max={day} defaultValue={tx?.date ?? day} /></Label>
     <Label title="Catatan (opsional)"><input name="note" placeholder="Contoh: makan siang" maxLength={160} defaultValue={tx?.note} /></Label>
   </>
 }
@@ -200,7 +222,7 @@ function CategoryFields({ category, data }: { category?: Category; data: Ledger 
     <Label title="Jenis"><Select name="type" value={type} onChange={event => setType(event.target.value as Category['type'])}>
       <option value="expense">Pengeluaran</option><option value="income">Pemasukan</option></Select></Label>
     {type === 'expense' && !hasChildren && !hasBudget && <Label title="Kategori induk"><Select name="parent" defaultValue={category?.parentId ?? ''}>
-      <option value="">Kategori utama</option>{data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== category?.id)
+      <option value="">Kategori utama</option>{data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== titheCategory.id && item.id !== category?.id)
         .map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Label>}
     <AppearanceFields item={category} defaultIcon="bag" />
   </>
@@ -209,7 +231,7 @@ function BudgetFields({ data, editor }: { data: Ledger; editor: Extract<Editor, 
   const configured = editor.segment
     ? data.weeklyBudgets.filter(row => row.weekStart === editor.start && row.segment === editor.segment)
     : data.monthlyBudgets.filter(row => row.periodStart === editor.start)
-  const options = data.categories.filter(category => category.type === 'expense' && !category.parentId
+  const options = data.categories.filter(category => category.type === 'expense' && !category.parentId && category.id !== titheCategory.id
     && (!editor.categoryId ? !configured.some(row => row.categoryId === category.id) : category.id === editor.categoryId))
   return <>
     <p className="muted">{editor.segment ? segments[editor.segment] : 'Periode gajian'}</p>

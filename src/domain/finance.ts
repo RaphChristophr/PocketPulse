@@ -1,3 +1,5 @@
+import { isTitheIncome, titheAllocations, titheAmount, titheCategory } from './tithe.ts'
+
 export const accountTypes = { bank: 'Bank', digital_bank: 'Bank digital', cash: 'Tunai' } as const
 export const colors = { jade: 'Hijau', orange: 'Jingga', blue: 'Biru', violet: 'Ungu', rose: 'Merah muda', slate: 'Abu-abu', red: 'Merah', yellow: 'Kuning', teal: 'Toska', brown: 'Cokelat' } as const
 export const icons = { bank: 'Bank', wallet: 'Dompet', card: 'Kartu', piggy: 'Tabungan', meal: 'Makan', bike: 'Transportasi', bag: 'Belanja', coffee: 'Kopi', house: 'Rumah', briefcase: 'Pekerjaan', zap: 'Tagihan', gift: 'Hadiah' } as const
@@ -8,7 +10,8 @@ export type Account = Appearance & { id: string; name: string; type: keyof typeo
 export type Category = Appearance & { id: string; name: string; type: 'income' | 'expense'; parentId?: string }
 type TransactionBase = { id: string; date: string; amountIdr: number; note: string }
 export type Transaction = TransactionBase & (
-  { type: 'income' | 'expense'; accountId: string; categoryId: string } |
+  { type: 'income'; accountId: string; categoryId: string; tithe?: boolean } |
+  { type: 'expense'; accountId: string; categoryId: string; titheIncomeId?: string } |
   { type: 'transfer'; fromAccountId: string; toAccountId: string }
 )
 export type Segment = keyof typeof segments
@@ -143,6 +146,7 @@ export function validateLedger(input: unknown): Ledger {
       && categories.get(item.categoryId)?.type === 'expense'), 'Favorit transaksi tidak valid.')
     requireValid(unique(data.favorites.map(item => JSON.stringify([item.accountId, item.categoryId]))), 'Terdapat favorit ganda.')
   }
+  const transactions = new Map(data.transactions.map(item => [item.id, item]))
   for (const tx of data.transactions) {
     requireValid(isText(tx.id) && validDate(tx.date) && typeof tx.note === 'string'
       && Number.isSafeInteger(tx.amountIdr) && tx.amountIdr > 0, 'Tanggal atau nominal transaksi tidak valid.')
@@ -157,8 +161,18 @@ export function validateLedger(input: unknown): Ledger {
       requireValid((tx.type === 'income' || tx.type === 'expense') && categories.get(tx.categoryId)?.type === tx.type,
         'Pilih kategori yang sesuai jenis transaksi.')
       requireValid(account && tx.date >= account.openingDate, 'Pilih sumber dana dan tanggal setelah atau pada tanggal saldo awal.')
+      if (tx.type === 'income') {
+        requireValid(tx.tithe === undefined || typeof tx.tithe === 'boolean', 'Pilihan Tithe tidak valid.')
+        if (tx.tithe) requireValid(titheAmount(tx.amountIdr) > 0, 'Pemasukan terlalu kecil untuk alokasi Tithe.')
+      }
+      if (tx.type === 'expense' && (tx.titheIncomeId !== undefined || tx.categoryId === titheCategory.id)) {
+        const income = tx.titheIncomeId ? transactions.get(tx.titheIncomeId) : undefined
+        requireValid(income && isTitheIncome(income) && tx.categoryId === titheCategory.id && tx.date >= income.date,
+          'Pembayaran Tithe harus merujuk alokasi dan tanggal pemasukan yang valid.')
+      }
     }
   }
+  requireValid(titheAllocations(data.transactions).every(row => row.outstanding >= 0), 'Pembayaran Tithe melebihi alokasi.')
   for (const row of data.monthlyBudgets) {
     requireValid(validDate(row.periodStart) && row.periodStart.endsWith('-25'), 'Awal periode harus tanggal 25.')
   }
@@ -168,7 +182,7 @@ export function validateLedger(input: unknown): Ledger {
   }
   for (const row of [...data.weeklyBudgets, ...data.monthlyBudgets]) {
     requireValid(Number.isSafeInteger(row.limitIdr) && row.limitIdr >= 0
-      && categories.get(row.categoryId)?.type === 'expense' && !categories.get(row.categoryId)?.parentId, 'Limit budget atau kategori tidak valid.')
+      && categories.get(row.categoryId)?.type === 'expense' && !categories.get(row.categoryId)?.parentId && row.categoryId !== titheCategory.id, 'Limit budget atau kategori tidak valid.')
   }
   requireValid(unique(data.monthlyBudgets.map(row => JSON.stringify([row.periodStart, row.categoryId])))
     && unique(data.weeklyBudgets.map(row => JSON.stringify([row.weekStart, row.segment, row.categoryId]))), 'Terdapat limit ganda.')

@@ -77,7 +77,9 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     window.location.hash = path
   }
   function drillDown(category: string, start: string, end: string, segment?: Segment) {
-    const params = new URLSearchParams({ kategori: category, dari: start, sampai: end })
+    const params = new URLSearchParams({ dari: start, sampai: end })
+    if (category) params.set('kategori', category)
+    else params.set('jenis', 'expense')
     if (segment) params.set('bagian', segment)
     navigate(`riwayat?${params}`)
   }
@@ -137,7 +139,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
         {data && route.screen === 'ringkasan' && <Dashboard data={data} day={day} period={period} setPeriod={setPeriod}
           navigate={navigate} openTransaction={openTransaction} drillDown={drillDown} />}
         {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={filters => navigate(`riwayat?${filters}`)}
-          edit={item => item.kind === 'transaction' ? openTransaction(item.item) : setEditor(item)} />}
+          edit={item => item.kind === 'transaction' && !item.titheIncomeId ? openTransaction(item.item) : setEditor(item)} />}
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}
           edit={setEditor} save={save} notify={notify} drillDown={drillDown} />}
         {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed}

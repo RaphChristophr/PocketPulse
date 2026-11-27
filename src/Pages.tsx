@@ -4,6 +4,8 @@ import { accountTypes, addDays, addMonths, budgetRows, categoryContains, categor
 import { TransactionRow } from './Dashboard'
 import { type Commit, type Editor } from './Editors'
 import { download, Empty, Glyph, Select } from './ui'
+import { Tithe } from './Tithe'
+import { titheCategory } from './domain/tithe.ts'
 import { CloudSettings } from './CloudSettings'
 import type { CloudAccount } from './storage/cloud.ts'
 
@@ -17,6 +19,7 @@ export function History({ data, filters, setFilters, edit }: {
   const segment = filters.get('bagian') as Segment | null
   const rows = [...data.transactions].filter(tx => {
     if ((start && tx.date < start) || (end && tx.date > end) || (segment && segmentFor(tx.date) !== segment)) return false
+    if (filters.get('jenis') === 'expense' && tx.type !== 'expense') return false
     if (tx.type === 'transfer') return !category && (!account || tx.fromAccountId === account || tx.toAccountId === account)
     return (!category || categoryContains(data.categories, category, tx.categoryId)) && (!account || tx.accountId === account)
   }).sort((left, right) => right.date.localeCompare(left.date))
@@ -56,7 +59,7 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
   const start = weekly ? week : period
   const end = weekly ? addDays(start, 6) : periodEnd(start)
   const previous = addDays(week, -7)
-  const categories = data.categories.filter(item => item.type === 'expense' && !item.parentId)
+  const categories = data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== titheCategory.id)
   const weekHasLimits = data.weeklyBudgets.some(row => row.weekStart === week)
   const lastWeekHasLimits = data.weeklyBudgets.some(row => row.weekStart === previous)
   async function copy() {
@@ -106,7 +109,7 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
           </div>
         }) : <Empty>{categories.length ? 'Belum ada limit atau pengeluaran di bagian ini.' : 'Tambahkan kategori pengeluaran di Pengaturan.'}</Empty>}
       </section>
-    })}</div>
+    })}{!weekly && <Tithe data={data} period={period} edit={edit} />}</div>
   </>
 }
 
@@ -174,7 +177,7 @@ export function Settings({ data, save, edit, notify, install, installed, account
       </section>
       <section className="panel"><div className="panel-heading"><div><h2>Kategori</h2><p>Pengelompokan transaksi</p></div>
         <button className="button secondary" onClick={() => edit({ kind: 'category' })}><Plus size={16} /> Tambah</button></div>
-        {data.categories.length ? data.categories.map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'category', item })}>
+        {data.categories.length ? data.categories.filter(item => item.id !== titheCategory.id).map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'category', item })}>
           <Glyph item={item} /><span><strong>{categoryLabel(data.categories, item)}</strong><small>{transactionNames[item.type]}</small></span><span className="text-button">Edit</span>
         </button>) : <Empty>Belum ada kategori.</Empty>}
       </section>
