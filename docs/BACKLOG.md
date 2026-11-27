@@ -4,7 +4,7 @@
 
 **Status** — Diimplementasikan. Tampilan HP dan pencatatan pengeluaran diuji di browser dengan data contoh.
 
-- **Ringkasan.** Tonjolkan total pengeluaran dan progres budget periode aktif di header gradasi ungu. Susun grafik pengeluaran, kartu kategori dengan progres budget, dan transaksi terbaru di bawahnya. Sediakan akses ke Riwayat lengkap dari daftar transaksi terbaru.
+- **Ringkasan.** Tonjolkan total pengeluaran dan progres budget periode aktif di header gradasi hijau PocketPulse. Susun grafik pengeluaran, kartu kategori dengan progres budget, dan transaksi terbaru di bawahnya. Sediakan akses ke Riwayat lengkap dari daftar transaksi terbaru.
 - **Insight.** Sediakan layar untuk melihat tren pengeluaran berdasarkan periode, rincian pengeluaran per kategori, dan progres budget. Gunakan Rupiah dan pilihan periode PocketPulse, termasuk periode gajian tanggal 25–24.
 - **Catat transaksi.** Letakkan input nominal berukuran besar di bagian atas. Tampilkan kategori pengeluaran sebagai kisi ikon, lalu letakkan tanggal, sumber dana, dan catatan di bawahnya. Buat tombol Simpan mudah dijangkau dan pastikan alur pemasukan serta transfer tetap bisa diakses dari form.
 - **Navigasi mobile.** Susun Ringkasan, Insight, Budget, dan Pengaturan pada navigasi bawah dengan tombol **+** di tengah untuk membuka Catat transaksi. Uji pada layar HP sempit dan saat keyboard terbuka agar konten dan tombol Simpan tetap bisa dijangkau.

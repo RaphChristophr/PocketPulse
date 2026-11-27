@@ -4,6 +4,10 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Palet hijau pada layout mobile
+
+- Kembalikan palet hijau PocketPulse pada header, grafik, tombol, dan tema PWA. Verifikasi warna di Ringkasan, Insight, dan form transaksi di browser. Build dan 15 tes lulus. Pembaruan tampilan ini tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Layout mobile Ringkasan, Insight, dan Catat transaksi
 
 - Ringkasan menonjolkan total pengeluaran dan progres budget. Insight menampilkan grafik dan rincian per kategori untuk minggu ini, satu periode gajian, tiga periode, atau dua belas periode. Form transaksi menampilkan nominal besar dan kisi kategori. Tombol tambah ada di tengah navigasi bawah.
