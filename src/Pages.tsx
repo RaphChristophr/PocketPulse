@@ -179,7 +179,7 @@ export function Settings({ data, save, edit, notify, install, installed, account
       <section className="panel"><div className="panel-heading"><div><h2>{t("Sumber dana")}</h2><p>{t("Bank, bank digital, dan tunai")}</p></div>
         <button className="button secondary" onClick={() => edit({ kind: 'account' })}><Plus size={16} /> {t("Tambah")}</button></div>
         {data.accounts.length ? data.accounts.map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'account', item })}>
-          <Glyph item={item} /><span><strong>{item.name}</strong><small>{t(accountTypes[item.type])}{item.isSavings ? ` ${t('· Tabungan')}` : ''}</small></span><span className="text-button">Edit</span>
+          <Glyph item={item} /><span><strong>{item.name}</strong><small>{t(accountTypes[item.type])}{item.isSavings ? ` · ${t("Disisihkan")}` : ''}</small></span><span className="text-button">Edit</span>
         </button>) : <Empty>{t("Belum ada sumber dana.")}</Empty>}
       </section>
       <section className="panel"><div className="panel-heading"><div><h2>{t("Kategori")}</h2><p>{t("Pengelompokan transaksi")}</p></div>

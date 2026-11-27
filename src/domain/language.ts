@@ -70,7 +70,9 @@ Periode sebelumnya|Previous period
 Periode berikutnya|Next period
 Periode gajian|Pay period
 Total saldo|Total balance
-Termasuk tabungan|Including savings
+Saldo tersedia|Available balance
+Tabungan & dana darurat|Savings & emergency funds
+Disisihkan|Set aside
 Pemasukan|Income
 Pengeluaran|Expenses
 Sumber dana|Funding account
@@ -127,7 +129,8 @@ Nama sumber dana|Funding account name
 Jenis|Type
 Saldo awal (Rp)|Opening balance (Rp)
 Tanggal saldo awal|Opening balance date
-Akun khusus tabungan|Savings account
+Khusus tabungan atau dana darurat|Savings or emergency fund account
+Saldo akun ini disisihkan dari Saldo tersedia.|This account's balance is excluded from available balance.
 Nama kategori|Category name
 Kategori induk|Parent category
 Kategori utama|Top-level category
@@ -180,7 +183,6 @@ Coba alur PocketPulse atau mulai dengan catatan kosong.|Try PocketPulse or start
 Mulai ruang pribadi|Start a personal workspace
 Bank, bank digital, dan tunai|Banks, digital banks, and cash
 Tambah|Add
-· Tabungan|· Savings
 Belum ada sumber dana.|No funding accounts yet.
 Pengelompokan transaksi|Transaction categories
 Belum ada kategori.|No categories yet.

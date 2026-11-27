@@ -256,24 +256,22 @@ p { line-height: 1.5; }
 
 .spending-home, .spending-insight { max-width: 1000px; margin-inline: auto; }
 .spending-hero { color: var(--on-dark); background: var(--hero-gradient); padding: 18px 20px 23px; text-align: center; border-radius: var(--sheet-radius); }
-.hero-toolbar { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 8px; align-items: center; margin-bottom: 22px; }
+.hero-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
 .hero-icon { position: relative; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: rgb(255 255 255 / 18%); color: var(--on-dark); font-weight: 700; }
 .hero-demo { position: absolute; bottom: -5px; border-radius: 10px; padding: 1px 5px; background: var(--paper); color: var(--accent-deep); font-size: .62rem; }
 .hero-icon > svg { color: var(--accent-bright); }
-.hero-icon:hover, .spending-hero .icon-button:hover { background: rgb(255 255 255 / 28%); }
+.hero-icon:hover { background: rgb(255 255 255 / 28%); }
 .spending-period { width: fit-content; max-width: 100%; border-radius: 50px; gap: 0; }
 .spending-period .icon-button { border-radius: 50%; width: 35px; height: 40px; flex: none; }
 .spending-period > span { display: block; white-space: normal; text-align: center; font-size: .79rem; }
-.spending-hero .spending-period { justify-self: center; color: var(--on-dark); background: rgb(255 255 255 / 17%); border-color: transparent; }
 .spending-hero :is(a, button):focus-visible, .transaction-dialog .dialog-heading button:focus-visible,
 .transaction-amount :is(button, input):focus-visible { outline-color: var(--on-dark); }
 .spending-hero h1 { font-size: 1rem; font-weight: 620; letter-spacing: 0; }
 .hero-amount { font-size: clamp(2.45rem, 10.5vw, 4.1rem); line-height: 1.08; font-weight: 760; letter-spacing: -.045em; margin: 9px 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
-.hero-budget { font-size: .82rem; color: var(--dark-muted); padding-inline: 5px; }
-.hero-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 16px; padding: 14px 2px; border-radius: 21px; background: #15362a66; }
+.hero-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 16px; padding: 14px 2px; border-radius: 21px; background: #15362a66; }
 .hero-metrics > div { display: flex; flex-direction: column; gap: 5px; padding-inline: 6px; align-items: center; overflow-wrap: anywhere; }
 .hero-metrics > div + div { border-left: 1px solid rgb(255 255 255 / 24%); }
-.hero-metrics span, .hero-metrics small { font-size: .72rem; color: var(--dark-muted); }
+.hero-metrics span { font-size: .78rem; color: var(--dark-muted); }
 .hero-metrics strong { font-size: clamp(.9rem, 4vw, 1.35rem); font-variant-numeric: tabular-nums; }
 .desktop-compose { margin-top: 15px; background: var(--paper); color: var(--accent-deep); border-radius: 50px; }
 
@@ -281,8 +279,14 @@ p { line-height: 1.5; }
 .spending-home-body .panel, .spending-insight .panel { border-radius: 18px; }
 .home-trend, .home-categories { grid-column: 1 / -1; }
 .home-trend .panel-heading, .home-categories .panel-heading, .home-latest .panel-heading, .insight-goals .panel-heading { align-items: center; }
-.home-trend .panel-heading > span { color: var(--accent); font-size: .76rem; text-align: right; }
+.home-trend .panel-heading { flex-wrap: wrap; }
 .home-trend .panel-heading > h2 { font-size: 1rem; }
+.home-spending { display: grid; gap: 4px; font-size: .82rem; color: var(--muted); }
+.home-spending > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 5px 8px; }
+.home-spending strong { color: var(--ink); font-size: 1.35rem; overflow-wrap: anywhere; }
+.spending-figures.balance-totals { margin: 12px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); border-bottom: 0; }
+.spending-figures small { color: var(--muted); }
+.home-balances .balance-totals { grid-template-columns: minmax(0, 1fr); }
 .spending-home-body .panel-heading .text-button, .insight-goals .panel-heading .text-button { min-height: 34px; margin: 0; display: inline-flex; align-items: center; }
 .category-cards { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(170px, 1fr); gap: 10px; overflow-x: auto; padding: 3px 3px 5px; margin: -3px; scroll-padding-inline: 3px; scroll-snap-type: x proximity; }
 .category-card { display: grid; gap: 8px; align-content: center; text-align: left; scroll-snap-align: start; }

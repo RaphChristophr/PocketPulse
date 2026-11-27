@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Saldo tersedia di Ringkasan
+
+- Jadikan saldo tersedia sebagai angka utama. Akun yang ditandai khusus tabungan atau dana darurat masuk saldo yang disisihkan. Pindahkan pilihan periode ke kartu tren pengeluaran.
+- Build dan 16 tes lulus. Cek browser dengan data contoh memastikan penanda akun memperbarui saldo tersedia dan pergantian periode hanya memperbarui rekap. Perubahan siap di workspace untuk deploy Vercel manual dan tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Palet hijau pada layout mobile
 
 - Kembalikan palet hijau PocketPulse pada header, grafik, tombol, dan tema PWA. Verifikasi warna di Ringkasan, Insight, dan form transaksi di browser. Build dan 15 tes lulus. Pembaruan tampilan ini tidak memerlukan migrasi Supabase.

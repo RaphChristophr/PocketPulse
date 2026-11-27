@@ -229,7 +229,8 @@ function AccountFields({ account, day }: { account?: Account; day: string }) {
       <AmountInput name="openingBalance" label={t("Saldo awal (Rp)")} initial={account?.openingBalanceIdr ?? 0} signed />
       <Label title={t("Tanggal saldo awal")}><input required name="openingDate" type="date" max={day} defaultValue={account?.openingDate ?? day} /></Label>
     </div>
-    <label className="checkbox"><input type="checkbox" name="savings" defaultChecked={account?.isSavings} /> {t("Akun khusus tabungan")}</label>
+    <label className="checkbox"><input type="checkbox" name="savings" defaultChecked={account?.isSavings} aria-describedby="reserved-account-help" /> {t("Khusus tabungan atau dana darurat")}</label>
+    <p className="muted" id="reserved-account-help">{t("Saldo akun ini disisihkan dari Saldo tersedia.")}</p>
     <AppearanceFields item={account} defaultIcon="bank" />
   </>
 }

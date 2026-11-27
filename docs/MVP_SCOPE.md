@@ -3,10 +3,10 @@
 ## Rilis pertama
 
 - **PWA.** Pasang PocketPulse di layar utama HP. Setelah pemuatan online pertama selesai dan aplikasi siap offline, buka ulang, catat atau koreksi transaksi, serta lihat saldo dan kelola budget tanpa koneksi.
-- **Akun dan kategori.** Buat sumber dana berupa bank, bank digital, atau tunai dengan saldo awal. Ubah nama akun, tandai akun tabungan, dan buat kategori pemasukan atau pengeluaran. Pilih dan edit ikon serta warna untuk setiap sumber dana dan kategori.
+- **Akun dan kategori.** Buat sumber dana berupa bank, bank digital, atau tunai dengan saldo awal. Ubah nama akun, tandai akun khusus tabungan atau dana darurat, dan buat kategori pemasukan atau pengeluaran. Pilih dan edit ikon serta warna untuk setiap sumber dana dan kategori.
 - **Transaksi.** Tambah, edit, dan hapus pemasukan, pengeluaran, serta transfer. Sediakan riwayat dengan filter tanggal, kategori, dan akun. Filter akun menampilkan transfer pada kedua akun terkait.
 - **Budget.** Atur limit mingguan per bagian dan kategori, serta limit bulanan per kategori untuk tanggal 25–24. Lihat jatah, terpakai, dan sisa. Salin rencana minggu sebelumnya ke minggu yang belum diisi.
-- **Ringkasan.** Lihat saldo kelima akun dan total saldo, bagian tabungan, serta kategori pengeluaran tertinggi di periode gajian yang dipilih. Tampilkan sisa limit mingguan dan bulanan secara berdampingan setelah mencatat pengeluaran.
+- **Ringkasan.** Lihat saldo tersedia, total saldo, jumlah yang disisihkan untuk tabungan atau dana darurat, dan rincian tiap akun. Lihat kategori pengeluaran tertinggi di periode gajian yang dipilih, serta sisa limit mingguan dan bulanan setelah mencatat pengeluaran.
 - **Portabilitas data.** Sediakan backup JSON dan pemulihan sejak tahap pencatatan pertama. Ekspor CSV transaksi, rekap mingguan, dan rekap bulanan untuk dibuka di Excel atau Google Sheets.
 
 ## Setelah MVP
@@ -17,7 +17,7 @@
 
 ## Kriteria siap pakai
 
-1. Lima akun bisa dibuat, saldo awal dan jumlah totalnya benar, serta tabungan terlihat sebagai bagian dari total.
+1. Lima akun bisa dibuat dan total saldonya benar. Rekening yang ditandai khusus tabungan atau dana darurat tetap masuk total saldo dan dikecualikan dari saldo tersedia.
 2. Pengeluaran umum bisa dicatat dari HP dalam target awal sekitar 15 detik setelah pengaturan awal. Pengukuran dilakukan saat uji pakai pribadi.
 3. Pengeluaran Selasa, Sabtu, dan Minggu memakai bagian mingguan yang tepat. Transaksi tanggal 24 dan 25 masuk ke dua periode bulanan berbeda meskipun berada di minggu yang sama. Ringkasan dan ekspor menampilkan rentang periode yang digunakan.
 4. Transfer mengubah dua saldo dengan nominal yang sama. Hapus atau edit transfer memperbarui kedua saldo, dan ringkasan belanja tetap konsisten.

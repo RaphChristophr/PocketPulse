@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Activity, Bell, ChevronLeft, ChevronRight, Plus, Settings2 } from 'lucide-react'
 import { getLocale, t } from './domain/language.ts'
-import { addDays, addMonths, balanceFor, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { addDays, addMonths, balanceSummary, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { spendingDays } from './domain/spending.ts'
 import { Empty, Glyph } from './ui'
 import { SpendingChart } from './SpendingChart'
@@ -54,7 +54,6 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
   const largestCategory = largest?.type === 'expense' ? data.categories.find(category => category.id === largest.categoryId) : undefined
   const points = spendingDays(data.transactions, period, day < end ? day : end).map(point =>
     ({ start: point.date, end: point.date, spent: point.spent }))
-  const peak = Math.max(0, ...points.map(point => point.spent))
   const limits = budgetRows(data, period)
   const limit = sum(limits.map(row => row.limitIdr))
   const limitSpent = sum(limits.map(row => row.spent))
@@ -64,7 +63,7 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
     return item.spent || budget ? [{ ...item, budget }] : []
   })
   const recent = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4)
-  const sources = data.accounts.map(account => ({ ...account, balance: balanceFor(account, data.transactions) }))
+  const { sources, total, reserved, available } = balanceSummary(data)
   const week = weekStart(day)
   const segment = segmentFor(day)
   const todayRows = budgetRows(data, week, segment)
@@ -82,30 +81,34 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
         <a className="hero-icon" href="#pengaturan" aria-label={t(data.demo ? "Data contoh" : "Ruang pribadi")}>
           {initials || <Activity size={20} />}{data.demo && <small className="hero-demo">Demo</small>}
         </a>
-        <PeriodControl period={period} setPeriod={setPeriod} />
         <a className="hero-icon" href={reminders ? '#pengaturan?bagian=pengingat' : '#pengaturan'}
           aria-label={t(reminders ? "Pengingat harian" : "Pengaturan")}>{reminders ? <Bell size={20} /> : <Settings2 size={20} />}</a>
       </div>
-      <h1 id="spending-home-title">{t("Pengeluaran periode ini")}</h1>
-      <p className="hero-amount">{rupiah(spent)}</p>
-      <p className="hero-budget">
-        {limits.length > 0 ? t("{percent} dari budget {amount}", { percent: formatPercent(percent(limitSpent, limit)), amount: rupiah(limit) }) : t("Budget belum diatur")}
-        {daysLeft !== null && <> · {t("Sisa {count} hari", { count: daysLeft })}</>}
-      </p>
+      <h1 id="spending-home-title">{t("Saldo tersedia")}</h1>
+      <p className="hero-amount">{rupiah(available)}</p>
       <div className="hero-metrics">
-        <div><span>{t("Rata-rata harian")}</span><strong>{rupiah(Math.round(spent / Math.max(points.length, 1)))}</strong></div>
-        <div><span>{t("Transaksi")}</span><strong>{transactions.length}</strong></div>
-        <div><span>{t("Terbesar")}</span><strong>{rupiah(largest?.amountIdr ?? 0)}</strong>
-          {largest && <small>{largest.note || largestCategory?.name}</small>}</div>
+        <div><span>{t("Total saldo")}</span><strong>{rupiah(total)}</strong></div>
+        <div><span>{t("Tabungan & dana darurat")}</span><strong>{rupiah(reserved)}</strong></div>
       </div>
       <button type="button" className="button desktop-compose" onClick={() => openTransaction()}><Plus size={18} />{t("Catat transaksi")}</button>
     </section>
 
     <div className="spending-home-body">
       <section className="panel home-trend">
-        <div className="panel-heading"><h2>{t("Tren pengeluaran")}</h2><span>{rupiah(0)} – {rupiah(peak)}</span></div>
+        <div className="panel-heading"><h2>{t("Tren pengeluaran")}</h2><PeriodControl period={period} setPeriod={setPeriod} /></div>
+        <div className="home-spending">
+          <div><span>{t("Pengeluaran periode ini")}</span><strong>{rupiah(spent)}</strong></div>
+          <p>{limits.length > 0 ? t("{percent} dari budget {amount}", { percent: formatPercent(percent(limitSpent, limit)), amount: rupiah(limit) }) : t("Budget belum diatur")}
+            {daysLeft !== null && <> · {t("Sisa {count} hari", { count: daysLeft })}</>}</p>
+        </div>
         {points.length ? <SpendingChart key={period} points={points} drillDown={drillDown} />
           : <Empty>{t("Belum ada pengeluaran di periode ini.")}</Empty>}
+        <div className="balance-totals spending-figures">
+          <div><span>{t("Rata-rata harian")}</span><strong>{rupiah(Math.round(spent / Math.max(points.length, 1)))}</strong></div>
+          <div><span>{t("Transaksi")}</span><strong>{transactions.length}</strong></div>
+          <div><span>{t("Terbesar")}</span><strong>{rupiah(largest?.amountIdr ?? 0)}</strong>
+            {largest && <small>{largest.note || largestCategory?.name}</small>}</div>
+        </div>
       </section>
       <section className="home-categories">
         <div className="panel-heading"><h2>{t("Kategori")}</h2><a className="text-button" href="#insight">{t("Lihat semua")}</a></div>
@@ -124,12 +127,10 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
       <section className="panel home-balances">
         <div className="panel-heading"><h2>{t("Sumber dana")}</h2><a className="text-button" href="#pengaturan">{t("Kelola")}</a></div>
         <div className="balance-totals">
-          <div><span>{t("Total saldo")}</span><strong>{rupiah(sum(sources.map(account => account.balance)))}</strong></div>
-          <div><span>{t("Termasuk tabungan")}</span><strong>{rupiah(sum(sources.filter(account => account.isSavings).map(account => account.balance)))}</strong></div>
           <div><span>{t("Pemasukan")}</span><strong>{rupiah(sum(transactions.filter(tx => tx.type === 'income').map(tx => tx.amountIdr)))}</strong></div>
         </div>
         {sources.length ? <div className="account-list">{sources.map(account => <div className="account-row" key={account.id}>
-          <Glyph item={account} size={16} /><span><strong>{account.name}</strong>{account.isSavings && <small>{t("Tabungan")}</small>}</span><strong>{rupiah(account.balance)}</strong>
+          <Glyph item={account} size={16} /><span><strong>{account.name}</strong>{account.isSavings && <small>{t("Disisihkan")}</small>}</span><strong>{rupiah(account.balance)}</strong>
         </div>)}</div> : <Empty>{t("Belum ada sumber dana. Tambahkan akun dari Pengaturan.")}</Empty>}
       </section>
       <section className="panel home-remaining">

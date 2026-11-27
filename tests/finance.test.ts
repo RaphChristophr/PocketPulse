@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { addDays, balanceFor, budgetRows, csv, parseMoney, periodEnd, periodStart, segmentFor, validateLedger, weekStart, type Transaction } from '../src/domain/finance.ts'
+import { addDays, balanceFor, balanceSummary, budgetRows, csv, parseMoney, periodEnd, periodStart, segmentFor, validateLedger, weekStart, type Transaction } from '../src/domain/finance.ts'
 import { demoLedger } from '../src/domain/demo.ts'
 
 test('tanggal 25 membuka periode gajian baru, termasuk batas tahun dan Februari', () => {
@@ -26,6 +26,25 @@ test('transfer mengubah kedua saldo tanpa menambah pengeluaran atau budget', () 
   assert.equal(balanceFor(bank, data.transactions) - balanceFor(bank, without), -100_000)
   assert.equal(balanceFor(cash, data.transactions) - balanceFor(cash, without), 100_000)
   assert.deepEqual(budgetRows(data, '2026-11-25'), budgetRows({ ...data, transactions: without }, '2026-11-25'))
+})
+
+test('saldo tersedia mengecualikan tabungan dan dana darurat saat saldo dipindahkan', () => {
+  const demo = demoLedger('2026-12-01')
+  const ledger = validateLedger({
+    ...demo,
+    accounts: demo.accounts.map(account => account.id === 'second' ? { ...account, name: 'Dana Darurat', isSavings: true } : account),
+  })
+  const before = balanceSummary(ledger)
+  assert.equal(before.reserved, 3_150_000)
+  assert.equal(before.available, 5_360_000)
+  const transfer: Transaction = {
+    id: 'reserve-transfer', type: 'transfer', date: '2026-12-01', amountIdr: 100_000,
+    fromAccountId: 'bank', toAccountId: 'second', note: '',
+  }
+  const after = balanceSummary({ ...ledger, transactions: [...ledger.transactions, transfer] })
+  assert.equal(after.total, before.total)
+  assert.equal(after.available, before.available - 100_000)
+  assert.equal(after.reserved, before.reserved + 100_000)
 })
 
 test('pengeluaran memakai dua limit terpisah dan edit hari memindahkan pemakaian mingguan', () => {

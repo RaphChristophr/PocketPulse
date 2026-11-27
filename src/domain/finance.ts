@@ -76,6 +76,14 @@ export function balanceFor(account: Account, transactions: Transaction[]) {
     return balance + (tx.type === 'expense' ? -tx.amountIdr : tx.amountIdr)
   }, account.openingBalanceIdr)
 }
+
+export function balanceSummary({ accounts, transactions }: Pick<Ledger, 'accounts' | 'transactions'>) {
+  const sources = accounts.map(account => ({ ...account, balance: balanceFor(account, transactions) }))
+  const reserved = sum(sources.filter(account => account.isSavings).map(account => account.balance))
+  const available = sum(sources.filter(account => !account.isSavings).map(account => account.balance))
+  return { sources, total: available + reserved, reserved, available }
+}
+
 export const categoryContains = (categories: Category[], parent: string, actual: string) =>
   parent === actual || categories.some(category => category.id === actual && category.parentId === parent)
 

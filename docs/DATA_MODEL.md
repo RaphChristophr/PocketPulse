@@ -46,7 +46,7 @@ Frontend menyimpan satu snapshot di store `ledger` IndexedDB, dengan koleksi `ac
 ## Perhitungan
 
 - Saldo akun dihitung dari saldo awal ditambah pemasukan dan transfer masuk, lalu dikurangi pengeluaran dan transfer keluar. Satu transfer disimpan sebagai satu record. Perubahan tanggal, tipe, nominal, atau akun diterapkan ke record itu dalam satu operasi.
-- Total saldo adalah jumlah saldo seluruh akun. Total tabungan adalah jumlah saldo akun dengan `isSavings = true`.
+- Total saldo adalah jumlah saldo seluruh akun. Saldo yang disisihkan untuk tabungan atau dana darurat adalah jumlah saldo akun dengan `isSavings = true`. Saldo tersedia adalah jumlah saldo akun dengan `isSavings = false`. Pilihan periode gajian tidak memfilter perhitungan saldo.
 - Periode bulanan berawal dari tanggal 25 pada bulan transaksi jika tanggalnya 25 atau lebih. Jika tanggalnya 1–24, gunakan tanggal 25 bulan sebelumnya. Batas waktu kueri adalah `periodStart <= date < nextPeriodStart`. Untuk tampilan dan CSV, gunakan rentang tanggal 25 sampai tanggal 24 sebagai tanggal terakhir yang termasuk.
 - Angka terpakai bulanan adalah jumlah transaksi `expense` dengan kategori dan `periodStart` yang sama. Angka terpakai mingguan mencocokkan kategori, Senin awal minggu, dan bagian hari. `sisa = limitIdr - terpakai` untuk tiap limit.
 - Hitung peringkat kategori pengeluaran dari transaksi `expense` pada periode gajian yang dipilih. Limit kosong berarti belum dianggarkan, sementara Rp0 adalah limit yang sah. Peringkat dan total pengeluaran berasal dari transaksi yang sama.

@@ -7,14 +7,17 @@ Desain untuk mode PWA `standalone` dengan ruang aman di atas dan di bawah layar.
 ## Ringkasan
 
 ```text
-PocketPulse                        25 Nov–24 Des ▾
+PocketPulse
 
+Saldo tersedia                      Rp3.000.000
 Total saldo                         Rp4.000.000
-Termasuk tabungan                   Rp1.000.000
+Tabungan & dana darurat               Rp1.000.000
+
+Tren pengeluaran                   25 Nov–24 Des ▾
 
 Saldo akun
   Bank 1                            Rp2.500.000
-  Bank 2                            Rp1.000.000
+  Bank 2 · Disisihkan                Rp1.000.000
   Bank digital 1                      Rp300.000
   Bank digital 2                      Rp150.000
   Tunai                                Rp50.000
