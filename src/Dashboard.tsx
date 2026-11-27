@@ -1,3 +1,4 @@
+import { t } from './domain/language.ts'
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, PiggyBank, Plus, Wallet } from 'lucide-react'
 import { addMonths, balanceFor, budgetRows, categoryLabel, inRange, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { Empty, Glyph } from './ui.tsx'
@@ -10,7 +11,7 @@ export function TransactionRow({ tx, data, onClick }: { tx: Transaction; data: L
   const prefix = tx.type === 'expense' ? '−' : tx.type === 'income' ? '+' : ''
   return <button className="transaction-row" onClick={onClick}>
     <Glyph item={category} />
-    <span className="item-main"><strong>{tx.note || (category ? categoryLabel(data.categories, category) : transactionNames[tx.type])}</strong><small>{account}{tx.note && category?.parentId ? ` · ${categoryLabel(data.categories, category)}` : ''}</small></span>
+    <span className="item-main"><strong>{tx.note || (category ? categoryLabel(data.categories, category) : t(transactionNames[tx.type]))}</strong><small>{account}{tx.note && category?.parentId ? ` · ${categoryLabel(data.categories, category)}` : ''}</small></span>
     <span className="item-end"><strong className={tx.type === 'income' ? 'income-text' : ''}>{prefix}{rupiah(tx.amountIdr)}</strong><small>{shortDate(tx.date)}</small></span>
   </button>
 }
@@ -42,63 +43,63 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
   const activePeriodRows = budgetRows(data, periodStart(day))
   const todayCategories = data.categories.filter(item => todayRows.some(row => row.categoryId === item.id)
     || activePeriodRows.some(row => row.categoryId === item.id))
-  const remaining = (row: { limitIdr: number; spent: number } | undefined) => row ? rupiah(row.limitIdr - row.spent) : 'Belum diatur'
+  const remaining = (row: { limitIdr: number; spent: number } | undefined) => row ? rupiah(row.limitIdr - row.spent) : t("Belum diatur")
   return <>
-    <div className="page-title"><div><h1>Ringkasan</h1><p>Saldo, pengeluaran, dan sisa budget kamu.</p></div>
-      <button className="button primary page-action" onClick={() => openTransaction()}><Plus size={19} /> Catat transaksi</button>
+    <div className="page-title"><div><h1>{t("Ringkasan")}</h1><p>{t("Saldo, pengeluaran, dan sisa budget kamu.")}</p></div>
+      <button className="button primary page-action" onClick={() => openTransaction()}><Plus size={19} /> {t("Catat transaksi")}</button>
     </div>
     <div className="period-toolbar">
       <div className="date-control">
-        <button aria-label="Periode sebelumnya" className="icon-button" onClick={() => setPeriod(addMonths(period, -1))}><ChevronLeft size={18} /></button>
+        <button aria-label={t("Periode sebelumnya")} className="icon-button" onClick={() => setPeriod(addMonths(period, -1))}><ChevronLeft size={18} /></button>
         <span><CalendarDays size={16} />{rangeLabel(period, end)}</span>
-        <button aria-label="Periode berikutnya" className="icon-button" onClick={() => setPeriod(addMonths(period, 1))}><ChevronRight size={18} /></button>
+        <button aria-label={t("Periode berikutnya")} className="icon-button" onClick={() => setPeriod(addMonths(period, 1))}><ChevronRight size={18} /></button>
       </div>
-      <span className="period-caption">Periode gajian</span>
+      <span className="period-caption">{t("Periode gajian")}</span>
     </div>
     <div className="dashboard-grid">
       <section className="balance-panel" aria-labelledby="balance-heading">
         <div className="balance-art" aria-hidden="true"><i /><i /><i /><i /></div>
-        <h2 id="balance-heading">Total saldo</h2>
+        <h2 id="balance-heading">{t("Total saldo")}</h2>
         <p className="balance-number">{rupiah(total)}</p>
-        <p className="savings-line"><PiggyBank size={16} /> Termasuk tabungan {rupiah(savings)}</p>
+        <p className="savings-line"><PiggyBank size={16} /> {t("Termasuk tabungan")} {rupiah(savings)}</p>
         <div className="balance-metrics">
-          <div><span className="metric-icon"><ArrowDownLeft size={17} /></span><div><span>Pemasukan</span><strong>{rupiah(income)}</strong></div></div>
-          <div><span className="metric-icon outgoing"><ArrowUpRight size={17} /></span><div><span>Pengeluaran</span><strong>{rupiah(expenses)}</strong></div></div>
+          <div><span className="metric-icon"><ArrowDownLeft size={17} /></span><div><span>{t("Pemasukan")}</span><strong>{rupiah(income)}</strong></div></div>
+          <div><span className="metric-icon outgoing"><ArrowUpRight size={17} /></span><div><span>{t("Pengeluaran")}</span><strong>{rupiah(expenses)}</strong></div></div>
         </div>
       </section>
       <section className="panel accounts-panel">
-        <div className="panel-heading"><div><h2>Sumber dana</h2><p>Saldo di setiap akun</p></div><button className="text-button" onClick={() => navigate('pengaturan')}>Kelola</button></div>
+        <div className="panel-heading"><div><h2>{t("Sumber dana")}</h2><p>{t("Saldo di setiap akun")}</p></div><button className="text-button" onClick={() => navigate('pengaturan')}>{t("Kelola")}</button></div>
         {sources.length ? <div className="account-list">{sources.map(account => <div className="account-row" key={account.id}>
-          <Glyph item={account} size={16} /><span><strong>{account.name}</strong>{account.isSavings && <small>Tabungan</small>}</span><strong>{rupiah(account.balance)}</strong>
-        </div>)}</div> : <Empty>Belum ada sumber dana. Tambahkan akun dari Pengaturan.</Empty>}
+          <Glyph item={account} size={16} /><span><strong>{account.name}</strong>{account.isSavings && <small>{t("Tabungan")}</small>}</span><strong>{rupiah(account.balance)}</strong>
+        </div>)}</div> : <Empty>{t("Belum ada sumber dana. Tambahkan akun dari Pengaturan.")}</Empty>}
       </section>
       <section className="panel budget-overview">
-        <div className="panel-heading"><div><h2>Sisa budget</h2><p>Jatah yang sudah kamu atur</p></div><button className="text-button" onClick={() => navigate('budget')}>Lihat budget</button></div>
+        <div className="panel-heading"><div><h2>{t("Sisa budget")}</h2><p>{t("Jatah yang sudah kamu atur")}</p></div><button className="text-button" onClick={() => navigate('budget')}>{t("Lihat budget")}</button></div>
         <div className="budget-summaries">
-          <BudgetSummary label="Minggu ini" spent={weekSpent} limit={weekLimit} hasBudget={weekly.length > 0} />
-          <BudgetSummary label="Periode gajian" spent={monthSpent} limit={monthLimit} hasBudget={monthly.length > 0} />
+          <BudgetSummary label={t("Minggu ini")} spent={weekSpent} limit={weekLimit} hasBudget={weekly.length > 0} />
+          <BudgetSummary label={t("Periode gajian")} spent={monthSpent} limit={monthLimit} hasBudget={monthly.length > 0} />
         </div>
         {todayCategories.length > 0 && <div className="today-budget">
-          <div className="today-row"><strong>Sisa jatah hari ini</strong><span>{segments[todaySegment]}</span><span>Periode gajian</span></div>
+          <div className="today-row"><strong>{t("Sisa jatah hari ini")}</strong><span>{t(segments[todaySegment])}</span><span>{t("Periode gajian")}</span></div>
           {todayCategories.map(item => <div className="today-row" key={item.id}><span>{item.name}</span>
             <strong>{remaining(todayRows.find(row => row.categoryId === item.id))}</strong>
             <strong>{remaining(activePeriodRows.find(row => row.categoryId === item.id))}</strong></div>)}
         </div>}
       </section>
       <section className="panel top-expenses">
-        <div className="panel-heading"><div><h2>Pengeluaran terbesar</h2><p>Per kategori di periode ini</p></div></div>
+        <div className="panel-heading"><div><h2>{t("Pengeluaran terbesar")}</h2><p>{t("Per kategori di periode ini")}</p></div></div>
         {categoryTotals.length ? <div className="rank-list">{categoryTotals.slice(0, 4).map(({ category, value }) =>
           <button className="rank-row" key={category.id} onClick={() => drillDown(category.id, period, end)}>
             <Glyph item={category} size={16} />
             <span className="rank-info"><span>{category.name}</span><span className="rank-bar" data-color={category.colorKey}><i style={{ inlineSize: `${(value / expenses) * 100}%` }} /></span></span>
             <strong>{rupiah(value)}</strong>
           </button>
-        )}</div> : <Empty>Belum ada pengeluaran di periode ini.</Empty>}
+        )}</div> : <Empty>{t("Belum ada pengeluaran di periode ini.")}</Empty>}
       </section>
       <section className="panel recent-panel">
-        <div className="panel-heading"><div><h2>Transaksi terbaru</h2><p>Riwayat pencatatan terakhir</p></div><button className="text-button" onClick={() => navigate('riwayat')}>Lihat riwayat</button></div>
+        <div className="panel-heading"><div><h2>{t("Transaksi terbaru")}</h2><p>{t("Riwayat pencatatan terakhir")}</p></div><button className="text-button" onClick={() => navigate('riwayat')}>{t("Lihat riwayat")}</button></div>
         {recent.length ? recent.map(tx => <TransactionRow key={tx.id} tx={tx} data={data} onClick={() => openTransaction(tx)} />)
-          : <Empty>Belum ada transaksi. Tambahkan transaksi pertamamu.</Empty>}
+          : <Empty>{t("Belum ada transaksi. Tambahkan transaksi pertamamu.")}</Empty>}
       </section>
       <SpendingChart data={data} day={day} period={period} drillDown={drillDown} />
     </div>
@@ -108,8 +109,8 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
 function BudgetSummary({ label, spent, limit, hasBudget }: { label: string; spent: number; limit: number; hasBudget: boolean }) {
   const percent = limit ? Math.min(spent / limit * 100, 100) : spent ? 100 : 0
   return <div className="budget-summary"><div className="budget-summary-title"><Wallet aria-hidden="true" size={16} />{label}</div>
-    <strong className={spent > limit ? 'danger-text' : ''}>{hasBudget ? (spent > limit ? `Lewat ${rupiah(spent - limit)}` : rupiah(limit - spent)) : 'Belum diatur'}</strong>
+    <strong className={spent > limit ? 'danger-text' : ''}>{hasBudget ? (spent > limit ? t("Lewat {amount}", { amount: rupiah(spent - limit) }) : rupiah(limit - spent)) : t("Belum diatur")}</strong>
     {hasBudget && <><div className="progress" aria-hidden="true"><i className={spent > limit ? 'over' : ''} style={{ inlineSize: `${percent}%` }} /></div>
-      <small>{rupiah(spent)} terpakai dari {rupiah(limit)}</small></>}
+      <small>{rupiah(spent)} {t("terpakai dari")} {rupiah(limit)}</small></>}
   </div>
 }

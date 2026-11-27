@@ -2,7 +2,7 @@
 
 ## Pengingat mencatat transaksi setiap malam
 
-**Status** — Direncanakan.
+**Status** — Kode tersedia di `dev`. Pengiriman HP memerlukan konfigurasi Supabase dan izin notifikasi.
 
 - Sediakan opsi aktif dan nonaktifkan pengingat di Pengaturan. Saat aktif, kirim satu notifikasi setiap malam pukul **20.00 WIB (Asia/Jakarta)**.
 - Gunakan teks seperti “Sudah catat transaksi hari ini?” dan buka form **Catat transaksi** ketika notifikasi diketuk.
@@ -10,7 +10,7 @@
 
 ## Pemilih ikon visual
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Ganti dropdown nama ikon dengan kisi ikon yang bisa diketuk di form tambah dan edit **kategori** serta **sumber dana**.
 - Tampilkan ikon yang sedang dipilih dengan penanda yang terlihat. Pilihan warna tetap terpisah dan pratinjau langsung mengikuti kedua pilihan. Beri setiap ikon nama aksesibel untuk pembaca layar.
@@ -18,7 +18,7 @@
 
 ## Pilihan warna tambahan untuk ikon
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Perluas palet warna ikon untuk **kategori** dan **sumber dana**. Tambahkan pilihan yang mudah dibedakan dari enam warna saat ini, misalnya merah, kuning, toska, dan cokelat. Pilihan akhir mengikuti keterbacaan warna ikon pada latar terang.
 - Tampilkan palet sebagai swatch berlabel dengan tanda centang pada warna terpilih. Pratinjau memperlihatkan ikon dengan warna pilihan sebelum disimpan.
@@ -26,7 +26,7 @@
 
 ## Grafik pengeluaran di Ringkasan
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Tambahkan grafik batang pengeluaran per hari agar terlihat kapan belanja paling besar. Sediakan pilihan **Minggu ini (Senin–Minggu)** dan **Periode gajian (25–24)**.
 - Tampilkan nominal saat batang dipilih dan sediakan akses ke transaksi pada hari itu. Pertahankan daftar **Pengeluaran terbesar** untuk melihat kategori yang paling banyak terpakai.
@@ -34,7 +34,7 @@
 
 ## Pilihan bahasa Indonesia dan English
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Tambahkan pemilih bahasa di **Pengaturan** dengan pilihan **Bahasa Indonesia** dan **English**. Gunakan Bahasa Indonesia untuk pengguna baru. Terapkan perubahan segera dan ingat pilihan saat PWA dibuka kembali, termasuk saat offline.
 - Terjemahkan navigasi, form, status, pesan kesalahan, dan petunjuk pemasangan. Gunakan format tanggal sesuai bahasa pilihan dan pertahankan Rupiah sebagai mata uang.
@@ -42,7 +42,7 @@
 
 ## Status sinkronisasi dan sinkronisasi otomatis
 
-**Status** — Direncanakan. Prioritaskan status sinkronisasi sebelum mengaktifkan sinkronisasi otomatis.
+**Status** — Diimplementasikan di branch `dev`. Sinkronisasi otomatis aktif saat aplikasi terbuka dan online.
 
 - Tampilkan status **Belum tersinkron**, **Sedang menyinkronkan**, atau waktu **Terakhir berhasil sinkron**. Jelaskan hasilnya, misalnya “1 transaksi ditarik dari cloud”. Simpan keterangan kegagalan di Pengaturan agar bisa dibaca lagi setelah pemberitahuan hilang.
 - Simpan perubahan ke perangkat terlebih dahulu. Jalankan sinkronisasi otomatis saat aplikasi dibuka kembali, setelah perubahan tersimpan ketika online, dan saat koneksi kembali selama aplikasi terbuka. Pertahankan tombol **Sinkronkan** untuk percobaan manual.
@@ -50,21 +50,21 @@
 
 ## Quick fill transaksi favorit
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Pengguna bisa menyimpan kombinasi kategori dan sumber dana yang sering dipakai. Tampilkan favorit sebagai tombol quick fill di form **Catat transaksi**. Misalnya, ketuk **Ojek → Bank Digital 1** untuk langsung mengisi kedua kolom itu.
 - Nominal tetap diisi pada setiap transaksi. Uji bahwa pintasan membuka form dengan nilai yang benar dan pengguna bisa menggantinya sebelum menyimpan.
 
 ## Sisa jatah yang berlaku hari ini
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Di Ringkasan, tonjolkan sisa jatah per kategori untuk bagian minggu yang berlaku hari ini serta sisa jatah pada periode gajian 25–24.
 - Tampilkan kedua nominal secara terpisah. Contohnya pada Sabtu, tampilkan **Sisa Makan Sabtu** dan **Sisa Makan periode gajian**. Uji perpindahan Jumat ke Sabtu, Minggu ke Senin, dan tanggal 24 ke 25.
 
 ## Alokasi dan pembayaran Tithe
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Tambahkan checklist **Sisihkan Tithe (10%)** pada form pemasukan. Saat dicentang, tampilkan pratinjau nominal dan simpan alokasi yang terhubung ke pemasukan tersebut. Contoh, gaji Rp5.000.000 menambah alokasi Tithe Rp500.000 pada periode gajian 25–24 sesuai tanggal pemasukan.
 - Tampilkan **Dialokasikan, Sudah dibayar, dan Belum dibayar** di Budget Tithe. Alokasi menandai uang yang disisihkan. Saldo sumber dana berkurang saat pembayaran Tithe benar-benar dicatat sebagai pengeluaran. Transfer antar sumber dana sendiri tetap tercatat sebagai transfer dan alokasinya tetap terbuka.
@@ -74,14 +74,14 @@
 
 ## Dropdown kategori dan sumber dana
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Rapikan pemilih kategori dan sumber dana di form transaksi. Tampilkan ikon berwarna dan nama pada setiap opsi serta beri penanda pada pilihan yang aktif.
 - Uji pemilihan di HP, termasuk opsi akun asal dan tujuan untuk transfer serta nama kategori yang panjang.
 
 ## Input nominal dengan pemisah ribuan dan tombol 000
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Format nominal secara otomatis saat diketik, dengan pemisah setiap tiga digit. Contoh `25000` tampil sebagai `25.000` dalam Bahasa Indonesia dan `25,000` jika English aktif. Simpan nilai sebagai 25000 Rupiah.
 - Sediakan tombol **000** untuk menambahkan tiga nol dengan sekali ketuk. Contoh ketik `25` lalu tekan **000** untuk memasukkan Rp25.000.
@@ -89,7 +89,7 @@
 
 ## Subkategori pengeluaran
 
-**Status** — Direncanakan.
+**Status** — Diimplementasikan di branch `dev`.
 
 - Izinkan kategori induk seperti **Transportasi** punya subkategori, misalnya **GoRide, GoCar, GrabBike, KRL, dan MRT**. Pengguna bisa memilih subkategori saat mencatat transaksi dan melihat rinciannya di Riwayat.
 - Usulan awalnya menggunakan satu jatah untuk kategori induk. Pengeluaran setiap subkategori mengurangi jatah Transportasi yang relevan pada periode mingguan dan bulanan. Di ringkasan, jumlahkan pengeluaran ke kategori induk satu kali, lalu sediakan rincian per subkategori.

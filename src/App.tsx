@@ -1,3 +1,4 @@
+import { t } from './domain/language.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Activity, ArrowLeftRight, ChartPie, ChevronRight, CircleCheck, CloudOff, LayoutDashboard, Plus, Settings2, X } from 'lucide-react'
 import { Dashboard } from './Dashboard'
@@ -30,6 +31,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
   const [data, setData] = useState<Ledger | null>(null)
   const [storageError, setStorageError] = useState(false)
   const [route, setRoute] = useState(getRoute)
+  const [composeRequested, requestCompose] = useState(() => window.location.hash === '#catat')
   const [period, setPeriod] = useState(() => periodStart(day))
   const [week, setWeek] = useState(() => weekStart(day))
   const [mode, setMode] = useState<'weekly' | 'monthly'>('weekly')
@@ -41,6 +43,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
   useEffect(() => {
     readLedger(storageKey).then(stored => setData(stored ?? (account ? emptyLedger() : demoLedger(today())))).catch(() => setStorageError(true))
     function onHash() {
+      if (window.location.hash === '#catat') requestCompose(true)
       setRoute(getRoute())
       window.scrollTo(0, 0)
     }
@@ -85,7 +88,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     navigate(`riwayat?${params}`)
   }
   async function save(change: Change) {
-    if (!data) throw new Error('Data masih dimuat.')
+    if (!data) throw new Error(t("Data masih dimuat."))
     const updated = await updateLedger(data, change, storageKey)
     setData(updated)
     return updated
@@ -99,6 +102,16 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     }
     setEditor({ kind: 'transaction', item: tx })
   }
+  useEffect(() => {
+    if (!data || !composeRequested || editor) return
+    requestCompose(false)
+    if (window.location.hash === '#catat') window.history.replaceState(null, '', '#ringkasan')
+    if (!data.accounts.length) {
+      window.location.hash = 'pengaturan'
+      setEditor({ kind: 'account' })
+    } else setEditor({ kind: 'transaction' })
+  }, [data, composeRequested, editor])
+
   function onSaved(message: string, tx?: Transaction, updated?: Ledger) {
     setEditor(null)
     if (!tx || tx.type !== 'expense' || !updated) return notify(message)
@@ -107,37 +120,37 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     const weekRow = budgetRows(updated, weekStart(tx.date), segment).find(row => row.categoryId === tx.categoryId)
     const monthRow = budgetRows(updated, month).find(row => row.categoryId === tx.categoryId)
     const remaining = (row: { limitIdr: number; spent: number }) =>
-      row.limitIdr >= row.spent ? `Sisa ${rupiah(row.limitIdr - row.spent)}` : `Lewat ${rupiah(row.spent - row.limitIdr)}`
+      row.limitIdr >= row.spent ? t("Sisa {amount}", { amount: rupiah(row.limitIdr - row.spent) }) : t("Lewat {amount}", { amount: rupiah(row.spent - row.limitIdr) })
     const details = [
-      weekRow ? `${segments[segment]}: ${remaining(weekRow)}` : '',
+      weekRow ? `${t(segments[segment])}: ${remaining(weekRow)}` : '',
       monthRow ? `${rangeLabel(month, periodEnd(month))}: ${remaining(monthRow)}` : '',
     ].filter(Boolean)
     setToast({ message, details })
   }
-  const startInstall = install ? () => { void install().catch(() => notify('Buka menu browser untuk memasang PocketPulse.')) } : undefined
+  const startInstall = install ? () => { void install().catch(() => notify(t("Buka menu browser untuk memasang PocketPulse."))) } : undefined
   return <div className="app-shell">
     <aside className="sidebar">
       <a className="brand" href="#ringkasan"><span className="brand-mark"><Activity size={22} strokeWidth={2.35} /></span><span>PocketPulse</span></a>
-      <nav className="main-nav" aria-label="Navigasi utama">{routes.map(({ id, name, icon: Symbol }) =>
-        <a key={id} href={`#${id}`} aria-current={route.screen === id ? 'page' : undefined}><Symbol size={19} strokeWidth={1.8} /><span>{name}</span></a>)}</nav>
+      <nav className="main-nav" aria-label={t("Navigasi utama")}>{routes.map(({ id, name, icon: Symbol }) =>
+        <a key={id} href={`#${id}`} aria-current={route.screen === id ? 'page' : undefined}><Symbol size={19} strokeWidth={1.8} /><span>{t(name)}</span></a>)}</nav>
       <div className="sidebar-bottom">
-        {data?.demo && <button className="workspace-label" onClick={() => navigate('pengaturan')}><span className="avatar">P</span><span><strong>Ruang contoh</strong><small>Data demo</small></span><ChevronRight size={15} /></button>}
-        {!data?.demo && <div className="workspace-label"><span className="avatar">P</span><span><strong>Ruang pribadi</strong><small>Perangkat ini</small></span></div>}
+        {data?.demo && <button className="workspace-label" onClick={() => navigate('pengaturan')}><span className="avatar">P</span><span><strong>{t("Ruang contoh")}</strong><small>{t("Data demo")}</small></span><ChevronRight size={15} /></button>}
+        {!data?.demo && <div className="workspace-label"><span className="avatar">P</span><span><strong>{t("Ruang pribadi")}</strong><small>{t("Perangkat ini")}</small></span></div>}
       </div>
     </aside>
     <div className="workspace">
       <header className="topbar">
         <a className="brand mobile-brand" href="#ringkasan"><span className="brand-mark"><Activity size={19} strokeWidth={2.35} /></span><span>PocketPulse</span></a>
-        <span className="desktop-breadcrumb">Keuangan pribadi <ChevronRight size={14} /> <strong>{routes.find(item => item.id === route.screen)?.name}</strong></span>
+        <span className="desktop-breadcrumb">{t("Keuangan pribadi")} <ChevronRight size={14} /> <strong>{t(routes.find(item => item.id === route.screen)?.name ?? '')}</strong></span>
         <div className="header-meta">
-          {!online ? <span className="connection"><CloudOff size={16} /> Offline</span> : readyOffline && <span className="connection desktop-status"><CircleCheck size={16} /> Siap offline</span>}
-          {data?.demo && <button className="demo-chip" onClick={() => navigate('pengaturan')}>Data contoh</button>}
+          {!online ? <span className="connection"><CloudOff size={16} /> Offline</span> : readyOffline && <span className="connection desktop-status"><CircleCheck size={16} /> {t("Siap offline")}</span>}
+          {data?.demo && <button className="demo-chip" onClick={() => navigate('pengaturan')}>{t("Data contoh")}</button>}
         </div>
       </header>
       <main className="content">
-        {refresh && <div className="update-notice"><span>Versi baru tersedia.</span><button className="text-button" onClick={refresh} disabled={Boolean(editor)}>Muat ulang</button></div>}
-        {!data && <section className="panel loading-panel"><h1>PocketPulse</h1><p>{storageError ? 'Penyimpanan perangkat gagal dibuka.' : 'Memuat catatan keuangan…'}</p>
-          {storageError && <button className="button secondary" onClick={() => window.location.reload()}>Coba lagi</button>}</section>}
+        {refresh && <div className="update-notice"><span>{t("Versi baru tersedia.")}</span><button className="text-button" onClick={refresh} disabled={Boolean(editor)}>{t("Muat ulang")}</button></div>}
+        {!data && <section className="panel loading-panel"><h1>PocketPulse</h1><p>{storageError ? t("Penyimpanan perangkat gagal dibuka.") : t("Memuat catatan keuangan…")}</p>
+          {storageError && <button className="button secondary" onClick={() => window.location.reload()}>{t("Coba lagi")}</button>}</section>}
         {data && route.screen === 'ringkasan' && <Dashboard data={data} day={day} period={period} setPeriod={setPeriod}
           navigate={navigate} openTransaction={openTransaction} drillDown={drillDown} />}
         {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={filters => navigate(`riwayat?${filters}`)}
@@ -147,10 +160,10 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
         {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed}
           account={account} cloudSync={cloudSync} />}
       </main>
-      {data && <button className="quick-add" aria-label="Catat transaksi" onClick={() => openTransaction()}><Plus size={23} /></button>}
+      {data && <button className="quick-add" aria-label={t("Catat transaksi")} onClick={() => openTransaction()}><Plus size={23} /></button>}
     </div>
     {editor && data && <EditorDialog editor={editor} data={data} day={day} save={save} onSaved={onSaved} close={() => setEditor(null)} />}
     {toast && <div className="toast" role="status"><div><strong>{toast.message}</strong>{toast.details?.map(detail => <p key={detail}>{detail}</p>)}</div>
-      <button className="icon-button" onClick={() => setToast(null)} aria-label="Tutup pemberitahuan"><X size={17} /></button></div>}
+      <button className="icon-button" onClick={() => setToast(null)} aria-label={t("Tutup pemberitahuan")}><X size={17} /></button></div>}
   </div>
 }

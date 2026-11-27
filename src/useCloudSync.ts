@@ -1,3 +1,4 @@
+import { t } from './domain/language.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { Commit } from './Editors'
 import { emptyLedger, type Ledger } from './domain/finance.ts'
@@ -43,7 +44,7 @@ export function useCloudSync({ ownerId, storageKey, data, save, online, paused }
     }
     if (!navigator.onLine) {
       if (manual) {
-        setMessage('Perangkat sedang offline. Catatan tersimpan di perangkat ini.')
+        setMessage(t("Perangkat sedang offline. Catatan tersimpan di perangkat ini."))
         setStatus('error')
       }
       return
@@ -56,7 +57,7 @@ export function useCloudSync({ ownerId, storageKey, data, save, online, paused }
         readLedger(storageKey), readSyncBaseline(storageKey), readCloudLedger(ownerId),
       ])
       const local = stored ?? current.current.data
-      if (!local || local.demo) throw new Error('Gunakan catatan pribadi sebelum menyinkronkan data.')
+      if (!local || local.demo) throw new Error(t("Gunakan catatan pribadi sebelum menyinkronkan data."))
       if (!prior && !remote && sameLedger(local, emptyLedger())) {
         setStatus('idle')
         return
@@ -72,7 +73,7 @@ export function useCloudSync({ ownerId, storageKey, data, save, online, paused }
       const synchronized = direction === 'push' ? await writeCloudLedger(ownerId, local, remote?.revision) : remote!
       if (direction === 'pull') {
         await current.current.save(latest => {
-          if (current.current.paused || !sameLedger(latest, local)) throw new Error('Catatan lokal baru berubah. Jalankan sinkronisasi lagi.')
+          if (current.current.paused || !sameLedger(latest, local)) throw new Error(t("Catatan lokal baru berubah. Jalankan sinkronisasi lagi."))
           return synchronized.ledger
         })
       }
@@ -86,7 +87,7 @@ export function useCloudSync({ ownerId, storageKey, data, save, online, paused }
       })
       setStatus('success')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Sinkronisasi gagal.')
+      setMessage(error instanceof Error ? error.message : t("Sinkronisasi gagal."))
       setStatus('error')
     } finally {
       running.current = false

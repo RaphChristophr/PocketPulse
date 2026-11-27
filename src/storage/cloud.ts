@@ -1,3 +1,4 @@
+import { t } from '../domain/language.ts'
 import { createClient } from '@supabase/supabase-js'
 import { validateLedger, type Ledger } from '../domain/finance.ts'
 import type { SyncBaseline } from '../domain/sync.ts'
@@ -15,14 +16,14 @@ export const supabase = projectUrl && publishableKey && !cloudMisconfigured
 export type CloudAccount = { id: string; email: string }
 
 function ledgerTable() {
-  if (!supabase) throw new Error('Koneksi Supabase belum dikonfigurasi.')
+  if (!supabase) throw new Error(t("Koneksi Supabase belum dikonfigurasi."))
   return supabase.from('pocketpulse_ledgers')
 }
 
 export async function readCloudLedger(ownerId: string): Promise<SyncBaseline | undefined> {
   const { data, error } = await ledgerTable().select('revision,snapshot').eq('user_id', ownerId)
     .abortSignal(AbortSignal.timeout(12000)).maybeSingle()
-  if (error) throw new Error('Data Supabase gagal dibaca. Coba lagi saat koneksi tersedia.')
+  if (error) throw new Error(t("Data Supabase gagal dibaca. Coba lagi saat koneksi tersedia."))
   if (!data) return undefined
   return { revision: data.revision, ledger: validateLedger(data.snapshot) }
 }
@@ -34,7 +35,7 @@ export async function writeCloudLedger(ownerId: string, ledger: Ledger, priorRev
     ? ledgerTable().update(values).eq('user_id', ownerId).eq('revision', priorRevision)
     : ledgerTable().insert({ ...values, user_id: ownerId })
   const { data, error } = await request.select('revision').abortSignal(AbortSignal.timeout(12000)).maybeSingle()
-  if (error && error.code !== '23505') throw new Error('Data Supabase gagal disimpan. Perubahan masih ada di perangkat ini.')
-  if (!data || error) throw new Error('Versi cloud berubah. Jalankan sinkronisasi lagi.')
+  if (error && error.code !== '23505') throw new Error(t("Data Supabase gagal disimpan. Perubahan masih ada di perangkat ini."))
+  if (!data || error) throw new Error(t("Versi cloud berubah. Jalankan sinkronisasi lagi."))
   return { revision, ledger }
 }

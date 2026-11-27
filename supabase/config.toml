@@ -1,0 +1,4 @@
+project_id = "pocketpulse"
+
+[functions.nightly-reminders]
+verify_jwt = false

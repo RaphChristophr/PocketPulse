@@ -1,3 +1,4 @@
+import { getLocale, t } from './language.ts'
 import { isTitheIncome, titheAllocations, titheAmount, titheCategory } from './tithe.ts'
 
 export const accountTypes = { bank: 'Bank', digital_bank: 'Bank digital', cash: 'Tunai' } as const
@@ -23,9 +24,8 @@ export const emptyLedger = (): Ledger => ({
   schemaVersion: 1, demo: false, accounts: [], categories: [], transactions: [], monthlyBudgets: [], weeklyBudgets: [],
 })
 
-export const rupiah = (amount: number) => new Intl.NumberFormat('id-ID', {
-  style: 'currency', currency: 'IDR', maximumFractionDigits: 0,
-}).format(amount).replace(/\s/g, '')
+export const rupiah = (amount: number) =>
+  `${amount < 0 ? '-' : ''}Rp${new Intl.NumberFormat(getLocale(), { maximumFractionDigits: 0 }).format(Math.abs(amount))}`
 const dateParts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit' })
 export function today() {
   const parts = Object.fromEntries(dateParts.formatToParts(new Date()).map(({ type, value }) => [type, value]))
@@ -43,7 +43,7 @@ export function addMonths(day: string, count: number) {
   value.setUTCMonth(value.getUTCMonth() + count)
   return toISO(value)
 }
-export const shortDate = (day: string, year = false) => new Intl.DateTimeFormat('id-ID', {
+export const shortDate = (day: string, year = false) => new Intl.DateTimeFormat(getLocale(), {
   timeZone: 'UTC', day: 'numeric', month: 'short', ...(year ? { year: 'numeric' } : {}),
 }).format(toDate(day))
 export function rangeLabel(start: string, end: string) {
@@ -106,9 +106,9 @@ const validDate = (value: unknown): value is string => {
 }
 export function parseMoney(text: string, minimum = 0) {
   const raw = text.trim()
-  if (!/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)$/.test(raw)) throw new Error('Masukkan nominal dalam Rupiah utuh.')
+  if (!/^-?(?:\d+|\d{1,3}(?:\.\d{3})+)$/.test(raw)) throw new Error(t("Masukkan nominal dalam Rupiah utuh."))
   const amount = Number(raw.replaceAll('.', ''))
-  if (!Number.isSafeInteger(amount) || amount < minimum) throw new Error('Nominal di luar batas yang diperbolehkan.')
+  if (!Number.isSafeInteger(amount) || amount < minimum) throw new Error(t("Nominal di luar batas yang diperbolehkan."))
   return amount
 }
 function requireValid(condition: unknown, message: string): asserts condition {
@@ -117,78 +117,78 @@ function requireValid(condition: unknown, message: string): asserts condition {
 function unique(keys: string[]) { return new Set(keys).size === keys.length }
 export function validateLedger(input: unknown): Ledger {
   const data = input as Ledger
-  requireValid(data && data.schemaVersion === 1 && typeof data.demo === 'boolean', 'Format backup PocketPulse tidak dikenali.')
+  requireValid(data && data.schemaVersion === 1 && typeof data.demo === 'boolean', t("Format backup PocketPulse tidak dikenali."))
   for (const list of [data.accounts, data.categories, data.transactions, data.monthlyBudgets, data.weeklyBudgets]) {
-    requireValid(Array.isArray(list) && list.every(item => item && typeof item === 'object'), 'Isi catatan tidak lengkap.')
+    requireValid(Array.isArray(list) && list.every(item => item && typeof item === 'object'), t("Isi catatan tidak lengkap."))
   }
   requireValid(unique(data.accounts.map(item => item.id)) && unique(data.categories.map(item => item.id))
-    && unique(data.transactions.map(item => item.id)), 'Terdapat ID catatan ganda.')
+    && unique(data.transactions.map(item => item.id)), t("Terdapat ID catatan ganda."))
   const accounts = new Map(data.accounts.map(item => [item.id, item]))
   const categories = new Map(data.categories.map(item => [item.id, item]))
   for (const account of data.accounts) {
     requireValid(isText(account.id) && isText(account.name) && keyOf(accountTypes, account.type)
       && Number.isSafeInteger(account.openingBalanceIdr) && validDate(account.openingDate)
       && typeof account.isSavings === 'boolean' && keyOf(icons, account.iconKey) && keyOf(colors, account.colorKey),
-    'Sumber dana tidak valid.')
+    t("Sumber dana tidak valid."))
   }
   for (const category of data.categories) {
     requireValid(isText(category.id) && isText(category.name) && (category.type === 'income' || category.type === 'expense')
-      && keyOf(icons, category.iconKey) && keyOf(colors, category.colorKey), 'Kategori tidak valid.')
+      && keyOf(icons, category.iconKey) && keyOf(colors, category.colorKey), t("Kategori tidak valid."))
   }
   for (const category of data.categories) {
     if (category.parentId === undefined) continue
     const parent = categories.get(category.parentId)
     requireValid(category.type === 'expense' && parent?.type === 'expense' && parent.id !== category.id && !parent.parentId,
-      'Pilih kategori induk pengeluaran yang valid.')
+      t("Pilih kategori induk pengeluaran yang valid."))
   }
   if (data.favorites !== undefined) {
     requireValid(Array.isArray(data.favorites) && data.favorites.every(item => item && accounts.has(item.accountId)
-      && categories.get(item.categoryId)?.type === 'expense'), 'Favorit transaksi tidak valid.')
-    requireValid(unique(data.favorites.map(item => JSON.stringify([item.accountId, item.categoryId]))), 'Terdapat favorit ganda.')
+      && categories.get(item.categoryId)?.type === 'expense'), t("Favorit transaksi tidak valid."))
+    requireValid(unique(data.favorites.map(item => JSON.stringify([item.accountId, item.categoryId]))), t("Terdapat favorit ganda."))
   }
   const transactions = new Map(data.transactions.map(item => [item.id, item]))
   for (const tx of data.transactions) {
     requireValid(isText(tx.id) && validDate(tx.date) && typeof tx.note === 'string'
-      && Number.isSafeInteger(tx.amountIdr) && tx.amountIdr > 0, 'Tanggal atau nominal transaksi tidak valid.')
+      && Number.isSafeInteger(tx.amountIdr) && tx.amountIdr > 0, t("Tanggal atau nominal transaksi tidak valid."))
     if (tx.type === 'transfer') {
-      requireValid(tx.fromAccountId !== tx.toAccountId, 'Akun asal dan tujuan harus berbeda.')
+      requireValid(tx.fromAccountId !== tx.toAccountId, t("Akun asal dan tujuan harus berbeda."))
       const from = accounts.get(tx.fromAccountId)
       const to = accounts.get(tx.toAccountId)
       requireValid(from && to && tx.date >= from.openingDate && tx.date >= to.openingDate,
-        'Pilih dua sumber dana dan tanggal setelah atau pada tanggal saldo awal.')
+        t("Pilih dua sumber dana dan tanggal setelah atau pada tanggal saldo awal."))
     } else {
       const account = accounts.get(tx.accountId)
       requireValid((tx.type === 'income' || tx.type === 'expense') && categories.get(tx.categoryId)?.type === tx.type,
-        'Pilih kategori yang sesuai jenis transaksi.')
-      requireValid(account && tx.date >= account.openingDate, 'Pilih sumber dana dan tanggal setelah atau pada tanggal saldo awal.')
+        t("Pilih kategori yang sesuai jenis transaksi."))
+      requireValid(account && tx.date >= account.openingDate, t("Pilih sumber dana dan tanggal setelah atau pada tanggal saldo awal."))
       if (tx.type === 'income') {
-        requireValid(tx.tithe === undefined || typeof tx.tithe === 'boolean', 'Pilihan Tithe tidak valid.')
-        if (tx.tithe) requireValid(titheAmount(tx.amountIdr) > 0, 'Pemasukan terlalu kecil untuk alokasi Tithe.')
+        requireValid(tx.tithe === undefined || typeof tx.tithe === 'boolean', t("Pilihan Tithe tidak valid."))
+        if (tx.tithe) requireValid(titheAmount(tx.amountIdr) > 0, t("Pemasukan terlalu kecil untuk alokasi Tithe."))
       }
       if (tx.type === 'expense' && (tx.titheIncomeId !== undefined || tx.categoryId === titheCategory.id)) {
         const income = tx.titheIncomeId ? transactions.get(tx.titheIncomeId) : undefined
         requireValid(income && isTitheIncome(income) && tx.categoryId === titheCategory.id && tx.date >= income.date,
-          'Pembayaran Tithe harus merujuk alokasi dan tanggal pemasukan yang valid.')
+          t("Pembayaran Tithe harus merujuk alokasi dan tanggal pemasukan yang valid."))
       }
     }
   }
-  requireValid(titheAllocations(data.transactions).every(row => row.outstanding >= 0), 'Pembayaran Tithe melebihi alokasi.')
+  requireValid(titheAllocations(data.transactions).every(row => row.outstanding >= 0), t("Pembayaran Tithe melebihi alokasi."))
   for (const row of data.monthlyBudgets) {
-    requireValid(validDate(row.periodStart) && row.periodStart.endsWith('-25'), 'Awal periode harus tanggal 25.')
+    requireValid(validDate(row.periodStart) && row.periodStart.endsWith('-25'), t("Awal periode harus tanggal 25."))
   }
   for (const row of data.weeklyBudgets) {
     requireValid(validDate(row.weekStart) && weekStart(row.weekStart) === row.weekStart && keyOf(segments, row.segment),
-      'Periode budget mingguan tidak valid.')
+      t("Periode budget mingguan tidak valid."))
   }
   for (const row of [...data.weeklyBudgets, ...data.monthlyBudgets]) {
     requireValid(Number.isSafeInteger(row.limitIdr) && row.limitIdr >= 0
-      && categories.get(row.categoryId)?.type === 'expense' && !categories.get(row.categoryId)?.parentId && row.categoryId !== titheCategory.id, 'Limit budget atau kategori tidak valid.')
+      && categories.get(row.categoryId)?.type === 'expense' && !categories.get(row.categoryId)?.parentId && row.categoryId !== titheCategory.id, t("Limit budget atau kategori tidak valid."))
   }
   requireValid(unique(data.monthlyBudgets.map(row => JSON.stringify([row.periodStart, row.categoryId])))
-    && unique(data.weeklyBudgets.map(row => JSON.stringify([row.weekStart, row.segment, row.categoryId]))), 'Terdapat limit ganda.')
+    && unique(data.weeklyBudgets.map(row => JSON.stringify([row.weekStart, row.segment, row.categoryId]))), t("Terdapat limit ganda."))
   const absoluteBaseline = sum(data.accounts.map(account => Math.abs(account.openingBalanceIdr)))
   requireValid(Number.isSafeInteger(absoluteBaseline + sum(data.transactions.map(tx => tx.amountIdr))),
-    'Total nominal melebihi batas perhitungan yang aman.')
+    t("Total nominal melebihi batas perhitungan yang aman."))
   return data
 }
 

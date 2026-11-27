@@ -1,3 +1,4 @@
+import { getLanguage, t } from './domain/language.ts'
 import { ArrowLeftRight, Bike, BriefcaseBusiness, Building2, Coffee, CreditCard, Gift, House, PiggyBank, ShoppingBag, Utensils, Wallet, Zap, ChevronDown, Check } from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react'
 import { digitsFromAmount, groupedAmount, type Language } from './domain/amount.ts'
@@ -56,7 +57,7 @@ export function VisualPicker({ label, name, value, options, placeholder, onChang
   </div>
 }
 
-export function AmountInput({ name, label, initial, signed = false, autoFocus, onAmount, language = 'id' }: {
+export function AmountInput({ name, label, initial, signed = false, autoFocus, onAmount, language = getLanguage() }: {
   name: string; label: string; initial?: number; signed?: boolean; autoFocus?: boolean; onAmount?: (raw: string) => void; language?: Language;
 }) {
   const [raw, setRaw] = useState(initial === undefined ? '' : String(initial))
@@ -89,7 +90,7 @@ export function AmountInput({ name, label, initial, signed = false, autoFocus, o
       <input ref={box} aria-label={label} autoFocus={autoFocus} required inputMode={signed ? 'decimal' : 'numeric'}
         placeholder="0" value={groupedAmount(raw, language)} onChange={event => update(event.currentTarget.value, event.currentTarget.selectionStart ?? undefined)} />
       <input type="hidden" name={name} value={raw} />
-      <button type="button" className="button secondary" aria-label="Tambah tiga nol" onClick={() => {
+      <button type="button" className="button secondary" aria-label={t("Tambah tiga nol")} onClick={() => {
         update(raw && raw !== '-' ? raw + '000' : '0')
         box.current?.focus()
       }}>000</button>

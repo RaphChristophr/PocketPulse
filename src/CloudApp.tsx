@@ -1,10 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { getLanguage, subscribeLanguage, t } from './domain/language.ts'
+import { useEffect, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { Activity } from 'lucide-react'
 import { App } from './App'
 import { cloudMisconfigured, supabase, type CloudAccount } from './storage/cloud.ts'
 import { usePwa } from './usePwa'
 
 export function CloudApp() {
+  const language = useSyncExternalStore(subscribeLanguage, getLanguage)
+  useEffect(() => {
+    document.documentElement.lang = language
+    document.title = `PocketPulse | ${t('Keuangan pribadi')}`
+  }, [language])
   const pwa = usePwa()
   const [account, setAccount] = useState<CloudAccount | null | undefined>(supabase ? undefined : null)
   const [busy, setBusy] = useState(false)
@@ -32,25 +38,25 @@ export function CloudApp() {
       })
       if (failure) throw failure
     } catch {
-      setError('Login gagal. Periksa email, kata sandi, dan koneksi.')
+      setError(t("Login gagal. Periksa email, kata sandi, dan koneksi."))
     } finally { setBusy(false) }
   }
   return <main className="cloud-login">
     <div className="panel">
       <div className="brand"><span className="brand-mark"><Activity size={22} /></span><span>PocketPulse</span></div>
-      {cloudMisconfigured ? <><h1>Konfigurasi belum lengkap</h1><p>Isi URL Supabase dan publishable key untuk mengaktifkan login.</p></>
-        : account === undefined ? <p>Memuat sesi…</p> : <>
-          <h1>Masuk ke PocketPulse</h1>
+      {cloudMisconfigured ? <><h1>{t("Konfigurasi belum lengkap")}</h1><p>{t("Isi URL Supabase dan publishable key untuk mengaktifkan login.")}</p></>
+        : account === undefined ? <p>{t("Memuat sesi…")}</p> : <>
+          <h1>{t("Masuk ke PocketPulse")}</h1>
           <form className="fields" onSubmit={signIn}>
             <label className="field"><span>Email</span><input type="email" name="email" autoComplete="username" required /></label>
-            <label className="field"><span>Kata sandi</span><input type="password" name="password" autoComplete="current-password" required /></label>
+            <label className="field"><span>{t("Kata sandi")}</span><input type="password" name="password" autoComplete="current-password" required /></label>
             {error && <p className="form-error" role="alert">{error}</p>}
-            <button className="button primary" disabled={busy} type="submit">{busy ? 'Sedang masuk…' : 'Masuk'}</button>
+            <button className="button primary" disabled={busy} type="submit">{busy ? t("Sedang masuk…") : t("Masuk")}</button>
           </form>
           {pwa.install && !pwa.installed && <button className="button secondary cloud-actions" onClick={() => {
             void pwa.install?.().catch(() => setInstallError(true))
-          }}>Pasang PocketPulse</button>}
-          {installError && <p className="muted cloud-actions" role="status">Buka menu browser untuk memasang PocketPulse.</p>}
+          }}>{t("Pasang PocketPulse")}</button>}
+          {installError && <p className="muted cloud-actions" role="status">{t("Buka menu browser untuk memasang PocketPulse.")}</p>}
         </>}
     </div>
   </main>

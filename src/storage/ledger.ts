@@ -1,3 +1,4 @@
+import { t } from '../domain/language.ts'
 import type { SyncBaseline } from '../domain/sync.ts'
 import { validateLedger, type Ledger } from '../domain/finance.ts'
 
@@ -37,7 +38,7 @@ export async function writeSyncBaseline(key: string, value: SyncBaseline) {
     const transaction = db.transaction('ledger', 'readwrite')
     transaction.objectStore('ledger').put(value, `${key}:baseline`)
     transaction.oncomplete = () => resolve()
-    transaction.onabort = () => reject(transaction.error ?? new Error('Status sinkronisasi gagal disimpan.'))
+    transaction.onabort = () => reject(transaction.error ?? new Error(t("Status sinkronisasi gagal disimpan.")))
   })
 }
 
@@ -59,6 +60,6 @@ export async function updateLedger(initial: Ledger, change: (current: Ledger) =>
       }
     }
     transaction.oncomplete = () => resolve(next)
-    transaction.onabort = () => reject(failure ?? transaction.error ?? new Error('Data gagal disimpan.'))
+    transaction.onabort = () => reject(failure ?? transaction.error ?? new Error(t("Data gagal disimpan.")))
   })
 }
