@@ -14,6 +14,7 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 - **Bahasa.** Tambah pilihan Bahasa Indonesia dan English di Pengaturan. Format angka dan tanggal mengikuti bahasa pilihan. [Commit `2b82eaf`](https://github.com/RaphChristophr/PocketPulse/commit/2b82eaf)
 - **Pengingat pukul 20.00 WIB.** Antarmuka, service worker, kode fungsi pengiriman, dan tabel langganan sudah dibuat. Pada pemeriksaan terakhir, fungsi pengiriman dan jadwal Supabase Cron masih menunggu aktivasi, sehingga notifikasi HP belum aktif. [Commit `2b82eaf`](https://github.com/RaphChristophr/PocketPulse/commit/2b82eaf)
 - **Dokumentasi dev.** Tambah checklist GitHub, Supabase, dan Vercel untuk setiap pembaruan. [Commit `c9d6bda`](https://github.com/RaphChristophr/PocketPulse/commit/c9d6bda)
+- **Panduan chat baru.** Tambah `AGENTS.md` agar Codex membaca konteks dari repo, mencatat ide di backlog, dan memperbarui changelog setelah tahap dev selesai. [Panduan Codex](AGENTS.md)
 
 ### 26 November 2026 — Supabase, Vercel, dan instalasi PWA
 

@@ -11,5 +11,6 @@ PocketPulse menggantikan catatan keuangan di Notes dengan pencatatan cepat dari 
 - [Backlog](BACKLOG.md) mencatat fitur dan perbaikan yang direncanakan berikutnya.
 - [Changelog](../CHANGELOG.md) mencatat riwayat PocketPulse, fitur per versi, dan pembaruan di Preview.
 - [Checklist setelah perubahan dev](DEV_RELEASE_CHECKLIST.md) menjelaskan langkah GitHub, Supabase, dan Vercel setelah pekerjaan siap.
+- [Panduan Codex](../AGENTS.md) menetapkan cara chat baru membaca konteks dan mencatat perkembangan.
 
 Mulai dari PRD dan Scope MVP untuk memeriksa alurnya. Gunakan Implementation Plan, Data Model, dan Wireframe ketika mulai mengembangkan aplikasi.

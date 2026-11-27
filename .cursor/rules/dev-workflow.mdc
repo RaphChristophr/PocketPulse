@@ -5,6 +5,4 @@ alwaysApply: true
 
 # Alur pengembangan PocketPulse
 
-- Setelah satu tahap pengembangan selesai atau perubahan kode maupun dokumentasi siap, jalankan pengecekan yang relevan, commit perubahan tersebut, lalu push ke `origin/dev`.
-- Contoh untuk pembaruan backlog: cek diff, commit file dokumentasi, lalu jalankan `git push origin dev`.
-- Laporkan hash commit setelah push berhasil. Gunakan jalur `main` dan deploy Production hanya saat diminta secara eksplisit.
+Baca dan ikuti `AGENTS.md` di root repo untuk konteks chat baru, pembaruan dokumentasi dan changelog, serta commit dan push ke `origin/dev`.
