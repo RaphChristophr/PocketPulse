@@ -41,5 +41,6 @@ Jadwalkan panggilan POST harian pukul **13.00 UTC** menggunakan Supabase Cron. S
 
 - [Dokumentasi produk dan rencana testing](docs/README.md)
 - [Checklist setelah perubahan dev](docs/DEV_RELEASE_CHECKLIST.md)
+- [Changelog PocketPulse](CHANGELOG.md)
 - [Vercel untuk Vite](https://vercel.com/docs/frameworks/frontend/vite)
 - [Supabase Auth untuk React](https://supabase.com/docs/guides/auth/quickstarts/react)

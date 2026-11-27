@@ -12,6 +12,7 @@ Gunakan checklist ini setelah satu fase atau perubahan siap. Urutannya **cek lok
 - [ ] Periksa branch aktif dengan `git status --short --branch`. Jika bekerja di branch fitur, bawa perubahan yang sudah siap ke `dev` lewat PR atau merge biasa.
 - [ ] Jalankan `npm test` dan `npm run build` untuk perubahan aplikasi. Untuk perubahan dokumentasi saja, periksa tautan dan jalankan `git diff --check`.
 - [ ] Coba alur yang diubah dengan akun uji dan data dummy. Untuk perubahan transaksi, budget, atau sync, cek saldo dan riwayat setelah buka ulang atau setelah kembali online.
+- [ ] Catat perubahan fitur, perbaikan, atau aktivasi backend di bagian **Unreleased** pada [Changelog](../CHANGELOG.md). Saat nomor versi rilis sudah disepakati, pindahkan entri yang masuk rilis ke bagian versi itu.
 - [ ] Stage file yang relevan, cek `git diff --cached --check`, lalu buat commit deskriptif. Simpan file `.env.local`, kredensial, dan backup pengguna di luar commit.
 
 ## 2. Supabase dev jika ada perubahan backend
