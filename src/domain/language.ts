@@ -186,6 +186,10 @@ Tambah|Add
 Belum ada sumber dana.|No funding accounts yet.
 Pengelompokan transaksi|Transaction categories
 Belum ada kategori.|No categories yet.
+Nama kategori baru|New category name
+Misalnya Gaji|For example, Salary
+Misalnya Makan|For example, Food
+Isi nama kategori.|Enter a category name.
 Data dan backup|Data and backups
 Data tersimpan di perangkat ini.|Data is stored on this device.
 CSV transaksi|Transaction CSV

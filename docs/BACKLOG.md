@@ -87,6 +87,7 @@
 
 - Rapikan pemilih kategori dan sumber dana di form transaksi. Tampilkan ikon berwarna dan nama pada setiap opsi serta beri penanda pada pilihan yang aktif.
 - Uji pemilihan di HP, termasuk opsi akun asal dan tujuan untuk transfer serta nama kategori yang panjang.
+- **Daftar kategori kosong.** Pengguna bisa membuat kategori pemasukan atau pengeluaran pertama dari form transaksi. Kategori dibuat saat transaksi berhasil disimpan.
 
 ## Input nominal dengan pemisah ribuan dan tombol 000
 

@@ -55,24 +55,35 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
           const type = read(form, 'type') as Transaction['type']
           const base = { id: editor.item?.id ?? crypto.randomUUID(), amountIdr: parseMoney(read(form, 'amount'), 1), date: read(form, 'date'), note: read(form, 'note').trim() }
           if (base.date > day) throw new Error(t("Tanggal transaksi maksimal hari ini."))
+          let categoryId = read(form, 'category')
+          let categories = current.categories
+          const titheIncomeId = read(form, 'titheIncomeId')
+          if (type === 'expense' && titheIncomeId) {
+            categoryId = titheCategory.id
+            if (!categories.some(item => item.id === categoryId)) categories = [...categories, titheCategory]
+          } else if (type !== 'transfer' && form.has('newCategory')) {
+            const name = read(form, 'newCategory').trim()
+            if (!name) throw new Error(t("Isi nama kategori."))
+            const existing = categories.find(item => item.type === type && item.name === name && item.id !== titheCategory.id)
+            categoryId = existing?.id ?? crypto.randomUUID()
+            if (!existing) categories = [...categories, {
+              id: categoryId, name, type, iconKey: type === 'income' ? 'briefcase' : 'bag', colorKey: 'jade',
+            }]
+          }
           const tx: Transaction = type === 'transfer'
             ? { ...base, type, fromAccountId: read(form, 'from'), toAccountId: read(form, 'to') }
             : type === 'income'
-              ? { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'category'), ...(form.has('tithe') ? { tithe: true } : {}) }
-              : { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'titheIncomeId') ? titheCategory.id : read(form, 'category'),
-                ...(read(form, 'titheIncomeId') ? { titheIncomeId: read(form, 'titheIncomeId') } : {}) }
+              ? { ...base, type, accountId: read(form, 'account'), categoryId, ...(form.has('tithe') ? { tithe: true } : {}) }
+              : { ...base, type, accountId: read(form, 'account'), categoryId, ...(titheIncomeId ? { titheIncomeId } : {}) }
           form.set('savedId', tx.id)
-          if (tx.type === 'expense' && tx.titheIncomeId) return { ...current,
-            categories: current.categories.some(item => item.id === titheCategory.id) ? current.categories : [...current.categories, titheCategory],
-            transactions: replaceById(current.transactions, tx),
-          }
+          const next = { ...current, categories, transactions: replaceById(current.transactions, tx) }
           const favorites = current.favorites ?? []
-          if (tx.type === 'expense' && read(form, 'favoriteAction')) {
+          if (tx.type === 'expense' && !tx.titheIncomeId && read(form, 'favoriteAction')) {
             const others = favorites.filter(item => item.accountId !== tx.accountId || item.categoryId !== tx.categoryId)
-            return { ...current, transactions: replaceById(current.transactions, tx), favorites:
+            return { ...next, favorites:
               read(form, 'favoriteAction') === 'add' ? [...others, { accountId: tx.accountId, categoryId: tx.categoryId }] : others }
           }
-          return { ...current, transactions: replaceById(current.transactions, tx) }
+          return next
         }
         if (editor.kind === 'account') {
           const item: Account = {
@@ -187,7 +198,9 @@ function TransactionFields({ data, day, tx, linkedId, linkedAllocation, amount, 
           <input type="radio" name="category" value={item.id} required checked={category === item.id}
             onChange={() => { setCategory(item.id); setFavoriteAction('') }} />
           <Glyph item={item} size={22} /><span>{categoryLabel(data.categories, item)}</span>
-        </label>)}</div> : <p className="muted">{t("Belum ada kategori.")}</p>}
+        </label>)}</div> : <Label key={type} title={t("Nama kategori baru")}>
+          <input required name="newCategory" maxLength={60} placeholder={type === 'income' ? t("Misalnya Gaji") : t("Misalnya Makan")} />
+        </Label>}
       </fieldset>}
       <div className="form-columns transaction-details">
         <Label title={t("Tanggal")}><input required name="date" type="date" min={linkedAllocation?.income.date} max={day} defaultValue={tx?.date ?? day} /></Label>

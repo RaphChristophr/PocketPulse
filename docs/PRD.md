@@ -14,6 +14,8 @@ Pengguna awal adalah pemilik PocketPulse sendiri. Saat ini ia mencatat di Notes,
 2. Atur kategori seperti Makan, Ojek, dan Internet. Isi limit bulanan dan limit mingguan yang relevan.
 3. Catat dari HP. Pengeluaran dan pemasukan memakai nominal, akun, kategori, dan tanggal. Tanggal default hari ini dan catatan opsional. Transfer memakai nominal, akun asal, akun tujuan, dan tanggal.
 4. Buka Ringkasan untuk melihat saldo, sisa budget, dan pengeluaran terbesar. Dari tampilan Budget atau ringkasan kategori, buka daftar transaksi yang sesuai periode dan kategori. Setelah menyimpan pengeluaran, tampilkan sisa limit mingguan dan bulanan yang terkait.
+
+Jika belum ada kategori yang bisa dipilih untuk jenis transaksi, isi nama kategori pertama langsung di form **Catat transaksi**. PocketPulse menyimpan kategori dan transaksi bersamaan.
 5. Koreksi transaksi jika salah. Saldo, budget, dan ringkasan mengikuti hasil koreksi.
 
 ## Ikon dan warna

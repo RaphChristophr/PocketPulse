@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Kategori pertama dari form transaksi
+
+- Saat daftar kategori pemasukan atau pengeluaran kosong, isi nama kategori langsung di form. Kategori dan transaksi tersimpan bersamaan.
+- Build dan 16 tes lulus. Uji browser mobile mencakup pemasukan pertama dengan Tithe, saldo dan riwayat setelah buka ulang, pemilihan kategori yang sudah dibuat, pengeluaran pertama, dan transfer. Pembaruan ini tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Saldo tersedia di Ringkasan
 
 - Jadikan saldo tersedia sebagai angka utama. Akun yang ditandai khusus tabungan atau dana darurat masuk saldo yang disisihkan. Pindahkan pilihan periode ke kartu tren pengeluaran.
