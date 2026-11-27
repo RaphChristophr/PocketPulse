@@ -9,5 +9,6 @@ PocketPulse menggantikan catatan keuangan di Notes dengan pencatatan cepat dari 
 - [Data Model](DATA_MODEL.md) mendefinisikan struktur data dan aturan perhitungan.
 - [Arsitektur dan keputusan build](ARCHITECTURE.md) menjelaskan pilihan penyimpanan, struktur folder, keputusan build atau fork, dan jalur integrasi spreadsheet.
 - [Backlog](BACKLOG.md) mencatat fitur dan perbaikan yang direncanakan berikutnya.
+- [Checklist setelah perubahan dev](DEV_RELEASE_CHECKLIST.md) menjelaskan langkah GitHub, Supabase, dan Vercel setelah pekerjaan siap.
 
 Mulai dari PRD dan Scope MVP untuk memeriksa alurnya. Gunakan Implementation Plan, Data Model, dan Wireframe ketika mulai mengembangkan aplikasi.

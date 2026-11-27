@@ -40,5 +40,6 @@ Terapkan migrasi langganan, lalu deploy `nightly-reminders` ke Supabase dev. Sim
 Jadwalkan panggilan POST harian pukul **13.00 UTC** menggunakan Supabase Cron. Simpan secret yang sama di Vault dan pakai header `Authorization: Bearer <secret>`. Jalankan tes dari PWA melalui **Pengaturan → Pengingat harian** dan izinkan notifikasi. Aktifkan untuk perangkat yang memang ingin menerima pengingat.
 
 - [Dokumentasi produk dan rencana testing](docs/README.md)
+- [Checklist setelah perubahan dev](docs/DEV_RELEASE_CHECKLIST.md)
 - [Vercel untuk Vite](https://vercel.com/docs/frameworks/frontend/vite)
 - [Supabase Auth untuk React](https://supabase.com/docs/guides/auth/quickstarts/react)
