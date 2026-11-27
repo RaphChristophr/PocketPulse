@@ -44,6 +44,10 @@ Limit periode sebelumnya tersalin|Previous period limits copied
 Tidak ada limit yang dapat disalin.|There are no limits to copy.
 Batal|Cancel
 Jatah untuk hari ini belum diatur.|No limits are set for today.
+{percent} tersisa|{percent} remaining
+Jatah {amount}|{amount} limit
+{remaining} dari {limit}|{remaining} of {limit}
+Persentase sisa jatah|Remaining budget percentage
 Rincian jatah|Limit details
 Tersimpan di perangkat|Saved on this device
 Sudah tersinkron|Synced to cloud

@@ -61,6 +61,9 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
   const week = weekStart(day)
   const segment = segmentFor(day)
   const todayRows = budgetRows(data, week, segment)
+  const todayLimit = sum(todayRows.map(row => row.limitIdr))
+  const todayLeft = todayLimit - sum(todayRows.map(row => row.spent))
+  const todayPercent = todayLimit ? Math.max(0, Math.round(todayLeft / todayLimit * 100)) : 0
   const weeklyLimits = (Object.keys(segments) as Segment[]).flatMap(key => budgetRows(data, week, key))
   const currentLimits = budgetRows(data, periodStart(day))
   const remaining = (rows: typeof limits, id: string) => {
@@ -95,10 +98,23 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
       <section className="panel home-today" aria-labelledby="home-today-heading">
         <div className="panel-heading"><div><h2 id="home-today-heading">{t("Sisa jatah hari ini")}</h2><p>{t(segments[segment])}</p></div>
           <a className="text-button" href="#budget">{t("Lihat budget")}</a></div>
-        {todayPreview.length ? <ul>{todayPreview.map(row => <li key={row.categoryId}>
-          <span>{data.categories.find(item => item.id === row.categoryId)?.name}</span>
-          <strong className={row.spent > row.limitIdr ? 'danger-text' : undefined}>{rupiah(row.limitIdr - row.spent)}</strong>
-        </li>)}</ul> : <p className="muted">{t("Jatah untuk hari ini belum diatur.")}</p>}
+        {todayPreview.length ? <>
+          <div className="today-summary" data-over={todayLeft < 0}>
+            <div className="today-summary-label">
+              <strong>{todayLimit ? t("{percent} tersisa", { percent: formatPercent(todayPercent) }) : t("Jatah {amount}", { amount: rupiah(0) })}</strong>
+              {(todayLimit > 0 || todayLeft < 0) && <span>{todayLeft < 0 ? t("Lewat {amount}", { amount: rupiah(-todayLeft) })
+                : t("{remaining} dari {limit}", { remaining: rupiah(todayLeft), limit: rupiah(todayLimit) })}</span>}
+            </div>
+            <div className="today-meter" role="meter" aria-label={t("Persentase sisa jatah")}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={todayPercent}>
+              <span aria-hidden="true" style={{ width: `${todayPercent}%` }} />
+            </div>
+          </div>
+          <ul>{todayPreview.map(row => <li key={row.categoryId}>
+            <span>{data.categories.find(item => item.id === row.categoryId)?.name}</span>
+            <strong className={row.spent > row.limitIdr ? 'danger-text' : undefined}>{rupiah(row.limitIdr - row.spent)}</strong>
+          </li>)}</ul>
+        </> : <p className="muted">{t("Jatah untuk hari ini belum diatur.")}</p>}
       </section>
       <section className="panel home-trend">
         <div className="panel-heading"><h2>{t("Tren pengeluaran")}</h2><PeriodControl period={period} setPeriod={setPeriod} /></div>

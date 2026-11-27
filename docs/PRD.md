@@ -22,7 +22,7 @@ Form menampilkan hingga enam kategori yang dipilih, difavoritkan, atau terakhir 
 
 Di HP, buka Riwayat dari bagian atas Ringkasan untuk mencari catatan dan memfilter jenis, tanggal, kategori, atau sumber dana. Geser layar ke kiri atau kanan untuk berpindah di antara Ringkasan, Cashflow, Budget, dan Pengaturan. Grafik, daftar yang bisa digulir ke samping, dan kontrol form memakai interaksi masing-masing.
 
-Ringkasan menampilkan hingga tiga sisa jatah dari bagian hari yang berlaku tepat di bawah saldo. Notifikasi setelah pencatatan menampilkan status **Tersimpan di perangkat** atau **Sudah tersinkron** setelah versi transaksi yang disimpan dikonfirmasi di cloud.
+Ringkasan menampilkan satu batang persentase total sisa jatah dari bagian hari yang berlaku, diikuti hingga tiga rincian kategori tepat di bawah saldo. Persentase menggunakan seluruh limit pada bagian itu, termasuk kategori di luar tiga rincian. Notifikasi setelah pencatatan menampilkan status **Tersimpan di perangkat** atau **Sudah tersinkron** setelah versi transaksi yang disimpan dikonfirmasi di cloud.
 
 ## Ikon dan warna
 

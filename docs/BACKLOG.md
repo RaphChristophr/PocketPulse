@@ -13,10 +13,10 @@
 
 **Status** — Diimplementasikan. Pencatatan, arsip kategori, Riwayat, salin limit, dan swipe diuji di browser dengan data contoh.
 
-- **Ringkasan.** Tampilkan saldo tersedia, saldo total, dan dana yang disisihkan di header hijau. Tampilkan tiga sisa jatah hari ini di bawah saldo dan sediakan pintasan Riwayat di header.
+- **Ringkasan.** Tampilkan saldo tersedia, saldo total, dan dana yang disisihkan di header hijau. Tampilkan satu batang persentase total sisa jatah hari ini di bawah saldo, dengan tiga rincian kategori dan pintasan Riwayat di header.
 - **Catat transaksi.** Letakkan input nominal berukuran besar di atas enam kategori cepat. Sediakan pencarian semua kategori, penambahan langsung, dan arsip kategori di Pengaturan. Riwayat kategori arsip tetap bisa dibuka dan dikoreksi.
 - **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif, tempatkan tombol **+** di sampingnya, dan dukung swipe antarhalaman utama dengan pengecualian kontrol interaktif.
-- **Riwayat.** Cari catatan, pilih jenis transaksi, dan hapus semua filter dari layar yang sama. Tampilkan jenis yang aktif dari tautan grafik.
+- **Riwayat.** Cari catatan, pilih jenis transaksi, dan hapus semua filter dari layar yang sama. Gunakan pemilih berikon untuk kategori, sumber dana, dan jenis transaksi. Tampilkan pilihan yang aktif dari tautan grafik.
 - **Budget.** Tampilkan pratinjau sebelum menyalin limit periode gajian sebelumnya ke kategori aktif yang belum memiliki limit.
 
 ## Pengingat mencatat transaksi setiap malam

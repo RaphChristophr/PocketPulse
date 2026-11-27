@@ -4,6 +4,12 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Pemilih Riwayat dan grafik sisa jatah
+
+- Gunakan pemilih berikon untuk kategori, sumber dana, dan jenis transaksi di Riwayat. Pilihan aktif ditandai centang dan daftar panjang bisa digulir.
+- Tampilkan satu batang yang menunjukkan persentase dan nominal total sisa jatah untuk bagian hari yang aktif di Ringkasan.
+- Ganti sorotan tap bawaan dengan respons tekan tombol dan pertahankan indikator fokus keyboard. Build, 21 tes, serta uji Chromium ukuran HP dan desktop lulus. Perubahan siap dikirim bersama pembaruan berikutnya.
+
 ### 27 November 2026 — Alur harian di HP
 
 - Ringkas pemilih transaksi menjadi enam kategori cepat. Tambahkan pencarian dan pembuatan dari form, serta arsip kategori yang mempertahankan riwayat.

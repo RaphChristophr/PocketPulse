@@ -1,6 +1,6 @@
 import { getLanguage, setLanguage, t } from './domain/language.ts'
-import { useRef, useState } from 'react'
-import { CalendarDays, ChevronLeft, ChevronRight, Download, FileUp, Plus, Smartphone } from 'lucide-react'
+import { useId, useRef, useState, type ReactNode } from 'react'
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, CalendarDays, Check, ChevronDown, ChevronLeft, ChevronRight, Download, FileUp, ListFilter, Plus, Smartphone, X } from 'lucide-react'
 import { accountTypes, addDays, addMonths, budgetRows, categoryContains, categoryLabel, csv, emptyLedger, monthlyLimitsToCopy, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, spentBy, today, transactionNames, validateLedger, type Ledger, type Segment } from './domain/finance.ts'
 import { TransactionRow } from './Dashboard'
 import { type Commit, type Editor } from './Editors'
@@ -11,6 +11,57 @@ import { ReminderSettings } from './ReminderSettings'
 import { CloudSettings } from './CloudSettings'
 import type { CloudAccount } from './storage/cloud.ts'
 import type { CloudSync } from './useCloudSync'
+
+type FilterOption = { id: string; name: string; icon: ReactNode; detail?: string }
+
+function HistoryPicker({ label, placeholder, value, options, onChange }: {
+  label: string; placeholder: string; value: string; options: FilterOption[]; onChange: (value: string) => void;
+}) {
+  const id = useId()
+  const dialog = useRef<HTMLDialogElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false)
+  const allOption: FilterOption = { id: '', name: placeholder, icon: <span className="history-picker-icon"><ListFilter size={18} aria-hidden="true" /></span> }
+  const selected = options.find(option => option.id === value) ?? allOption
+  function show() {
+    dialog.current?.showModal()
+    setOpen(true)
+    dialog.current?.querySelector<HTMLButtonElement>('[aria-pressed="true"]')?.focus()
+  }
+  return <div className="field">
+    <span>{label}</span>
+    <button ref={trigger} type="button" className="history-picker-trigger" aria-label={`${label}: ${selected.name}`}
+      aria-haspopup="dialog" aria-expanded={open} aria-controls={id} onClick={show}>
+      {selected.icon}<span>{selected.name}</span><ChevronDown size={16} aria-hidden="true" />
+    </button>
+    <dialog ref={dialog} id={id} className="dialog history-picker" aria-labelledby={`${id}-title`} data-no-swipe
+      onClose={() => { setOpen(false); trigger.current?.focus({ preventScroll: true }) }}
+      onClick={event => { if (event.target === event.currentTarget) dialog.current?.close() }}>
+      <div className="history-picker-body">
+        <div className="dialog-heading">
+          <h2 id={`${id}-title`}>{label}</h2>
+          <button type="button" className="icon-button" onClick={() => dialog.current?.close()} aria-label={t("Tutup")}><X size={19} aria-hidden="true" /></button>
+        </div>
+        <div className="history-picker-list">
+          {[allOption, ...options].map(option => <button key={option.id} type="button" aria-pressed={selected.id === option.id} onClick={() => {
+            onChange(option.id)
+            dialog.current?.close()
+          }}>
+            {option.icon}
+            <span><strong>{option.name}</strong>{option.detail && <small>{option.detail}</small>}</span>
+            {selected.id === option.id && <Check size={18} aria-hidden="true" />}
+          </button>)}
+        </div>
+      </div>
+    </dialog>
+  </div>
+}
+
+const historyKinds = [
+  { id: 'expense', Icon: ArrowUpRight, color: 'rose' },
+  { id: 'income', Icon: ArrowDownLeft, color: 'jade' },
+  { id: 'transfer', Icon: ArrowLeftRight, color: 'slate' },
+] as const
 
 export function History({ data, filters, setFilters, edit }: {
   data: Ledger; filters: URLSearchParams; setFilters: (filters: URLSearchParams) => void; edit: (editor: Editor) => void;
@@ -47,13 +98,14 @@ export function History({ data, filters, setFilters, edit }: {
       <div className="filter-grid">
         <label className="field"><span>{t("Dari")}</span><input type="date" value={start} onChange={event => change('dari', event.target.value)} /></label>
         <label className="field"><span>{t("Sampai")}</span><input type="date" value={end} onChange={event => change('sampai', event.target.value)} /></label>
-        <label className="field"><span>{t("Sumber dana")}</span><Select value={account} onChange={event => change('akun', event.target.value)}><option value="">{t("Semua akun")}</option>
-          {data.accounts.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>
-        <label className="field"><span>{t("Kategori")}</span><Select value={category} onChange={event => change('kategori', event.target.value)}><option value="">{t("Semua kategori")}</option>
-          {data.categories.map(item => <option key={item.id} value={item.id}>{categoryLabel(data.categories, item)}</option>)}</Select></label>
-        <label className="field"><span id="history-kind-label">{t("Jenis")}</span><Select aria-labelledby="history-kind-label" value={kind}
-          onChange={event => change('jenis', event.target.value)}><option value="">{t("Semua jenis")}</option>
-          {Object.entries(transactionNames).map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</Select></label>
+        <HistoryPicker label={t("Sumber dana")} placeholder={t("Semua akun")} value={account} onChange={value => change('akun', value)}
+          options={data.accounts.map(item => ({ id: item.id, name: item.name, detail: t(accountTypes[item.type]), icon: <Glyph item={item} /> }))} />
+        <HistoryPicker label={t("Kategori")} placeholder={t("Semua kategori")} value={category} onChange={value => change('kategori', value)}
+          options={data.categories.map(item => ({ id: item.id, name: categoryLabel(data.categories, item),
+            detail: t(item.archived ? "Diarsipkan" : transactionNames[item.type]), icon: <Glyph item={item} /> }))} />
+        <HistoryPicker label={t("Jenis")} placeholder={t("Semua jenis")} value={kind} onChange={value => change('jenis', value)}
+          options={historyKinds.map(({ id, Icon, color }) => ({ id, name: t(transactionNames[id]),
+            icon: <span className="glyph" data-color={color}><Icon size={18} aria-hidden="true" /></span> }))} />
       </div>
       {(query || start || end || account || category || kind || segment) && <div className="filter-note">
         {segment && <><span>{t(segments[segment])}</span><button className="text-button" onClick={() => change('bagian', '')}>{t("Hapus filter bagian")}</button></>}
