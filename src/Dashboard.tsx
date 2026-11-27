@@ -1,5 +1,5 @@
 import { ArrowDownLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, PiggyBank, Plus, Wallet } from 'lucide-react'
-import { addMonths, balanceFor, budgetRows, inRange, periodEnd, rangeLabel, rupiah, segments, shortDate, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { addMonths, balanceFor, budgetRows, categoryLabel, inRange, periodEnd, rangeLabel, rupiah, segments, shortDate, spentBy, sum, transactionNames, weekStart, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { Empty, Glyph } from './ui.tsx'
 
 export function TransactionRow({ tx, data, onClick }: { tx: Transaction; data: Ledger; onClick: () => void }) {
@@ -9,7 +9,7 @@ export function TransactionRow({ tx, data, onClick }: { tx: Transaction; data: L
   const prefix = tx.type === 'expense' ? '−' : tx.type === 'income' ? '+' : ''
   return <button className="transaction-row" onClick={onClick}>
     <Glyph item={category} />
-    <span className="item-main"><strong>{tx.note || category?.name || transactionNames[tx.type]}</strong><small>{account}</small></span>
+    <span className="item-main"><strong>{tx.note || (category ? categoryLabel(data.categories, category) : transactionNames[tx.type])}</strong><small>{account}{tx.note && category?.parentId ? ` · ${categoryLabel(data.categories, category)}` : ''}</small></span>
     <span className="item-end"><strong className={tx.type === 'income' ? 'income-text' : ''}>{prefix}{rupiah(tx.amountIdr)}</strong><small>{shortDate(tx.date)}</small></span>
   </button>
 }
@@ -26,8 +26,7 @@ export function Dashboard({ data, day, period, setPeriod, openTransaction, navig
   const sources = data.accounts.map(account => ({ ...account, balance: balanceFor(account, data.transactions) }))
   const total = sum(sources.map(account => account.balance))
   const savings = sum(sources.filter(account => account.isSavings).map(account => account.balance))
-  const categoryTotals = data.categories.map(category => ({ category, value: sum(current.filter(tx =>
-    tx.type === 'expense' && tx.categoryId === category.id).map(tx => tx.amountIdr)) }))
+  const categoryTotals = data.categories.filter(category => !category.parentId).map(category => ({ category, value: spentBy(data.transactions, category.id, period, end, undefined, data.categories) }))
     .filter(item => item.value > 0).sort((a, b) => b.value - a.value)
   const recent = [...data.transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 4)
   const week = weekStart(day)

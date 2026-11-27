@@ -26,6 +26,10 @@
   --tone-violet: #665192; --soft-violet: #f0ebfa;
   --tone-rose: #a64d65; --soft-rose: #f9eaf0;
   --tone-slate: #4f615d; --soft-slate: #eef1ef;
+  --tone-red: #a0372b; --soft-red: #fae9e6;
+  --tone-yellow: #805c08; --soft-yellow: #fff4cf;
+  --tone-teal: #176268; --soft-teal: #e0f4f1;
+  --tone-brown: #805739; --soft-brown: #f2e8dd;
   --radius: 18px;
   --control: 10px;
   --gutter: 30px;
@@ -258,3 +262,19 @@ p { line-height: 1.5; }
 .cloud-login h1 { font-size: 1.65rem; margin-block: 24px 20px; }
 .cloud-login .fields { margin-top: 16px; }
 .cloud-actions { margin-top: 16px; }
+
+[data-color="red"] { --tone: var(--tone-red); --soft: var(--soft-red); }
+[data-color="yellow"] { --tone: var(--tone-yellow); --soft: var(--soft-yellow); }
+[data-color="teal"] { --tone: var(--tone-teal); --soft: var(--soft-teal); }
+[data-color="brown"] { --tone: var(--tone-brown); --soft: var(--soft-brown); }
+.icon-picker, .favorite-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.icon-picker button { border: 1px solid var(--line); border-radius: 8px; background: var(--paper); padding: 4px; }
+.icon-picker button[aria-pressed="true"] { outline: 2px solid var(--accent); outline-offset: -2px; }
+.visual-picker { border: 1px solid var(--line); border-radius: 8px; background: var(--wash); }
+.visual-picker summary { display: flex; align-items: center; gap: 8px; cursor: pointer; min-height: 44px; padding: 4px 8px; list-style: none; }
+.visual-picker summary::-webkit-details-marker { display: none; }
+.visual-picker summary > span:nth-child(2), .picker-options button > span:nth-child(2) { flex: 1; overflow-wrap: anywhere; min-width: 0; }
+.picker-options { display: grid; max-height: 208px; overflow-y: auto; border-top: 1px solid var(--line); }
+.picker-options button { display: flex; align-items: center; gap: 8px; padding: 4px 8px; text-align: left; background: var(--paper); border: 0; min-height: 44px; }
+.picker-options button:hover, .picker-options button[aria-pressed="true"] { background: var(--accent-light); }
+.picker-options p { padding: 8px; }

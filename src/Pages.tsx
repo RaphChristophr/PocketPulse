@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { CalendarDays, ChevronLeft, ChevronRight, Download, FileUp, Plus, Smartphone } from 'lucide-react'
-import { accountTypes, addDays, addMonths, budgetRows, csv, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, spentBy, today, transactionNames, validateLedger, type Ledger, type Segment } from './domain/finance.ts'
+import { accountTypes, addDays, addMonths, budgetRows, categoryContains, categoryLabel, csv, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, segmentFor, segments, spentBy, today, transactionNames, validateLedger, type Ledger, type Segment } from './domain/finance.ts'
 import { TransactionRow } from './Dashboard'
 import { type Commit, type Editor } from './Editors'
 import { download, Empty, Glyph, Select } from './ui'
@@ -18,7 +18,7 @@ export function History({ data, filters, setFilters, edit }: {
   const rows = [...data.transactions].filter(tx => {
     if ((start && tx.date < start) || (end && tx.date > end) || (segment && segmentFor(tx.date) !== segment)) return false
     if (tx.type === 'transfer') return !category && (!account || tx.fromAccountId === account || tx.toAccountId === account)
-    return (!category || tx.categoryId === category) && (!account || tx.accountId === account)
+    return (!category || categoryContains(data.categories, category, tx.categoryId)) && (!account || tx.accountId === account)
   }).sort((left, right) => right.date.localeCompare(left.date))
   const change = (key: string, value: string) => {
     const next = new URLSearchParams(filters)
@@ -37,7 +37,7 @@ export function History({ data, filters, setFilters, edit }: {
         <label className="field"><span>Sumber dana</span><Select value={account} onChange={event => change('akun', event.target.value)}><option value="">Semua akun</option>
           {data.accounts.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>
         <label className="field"><span>Kategori</span><Select value={category} onChange={event => change('kategori', event.target.value)}><option value="">Semua kategori</option>
-          {data.categories.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></label>
+          {data.categories.map(item => <option key={item.id} value={item.id}>{categoryLabel(data.categories, item)}</option>)}</Select></label>
       </div>
       {segment && <div className="filter-note"><span>{segments[segment]}</span><button className="text-button" onClick={() => change('bagian', '')}>Hapus filter bagian</button></div>}
       {rows.length ? rows.map(tx => <TransactionRow key={tx.id} tx={tx} data={data} onClick={() => edit({ kind: 'transaction', item: tx })} />)
@@ -56,7 +56,7 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
   const start = weekly ? week : period
   const end = weekly ? addDays(start, 6) : periodEnd(start)
   const previous = addDays(week, -7)
-  const categories = data.categories.filter(item => item.type === 'expense')
+  const categories = data.categories.filter(item => item.type === 'expense' && !item.parentId)
   const weekHasLimits = data.weeklyBudgets.some(row => row.weekStart === week)
   const lastWeekHasLimits = data.weeklyBudgets.some(row => row.weekStart === previous)
   async function copy() {
@@ -87,14 +87,14 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
     <div className="budget-stack">{blocks.map(segment => {
       const rows = budgetRows(data, start, segment)
       const listed = categories.filter(item => rows.some(row => row.categoryId === item.id)
-        || spentBy(data.transactions, item.id, start, end, segment) > 0)
+        || spentBy(data.transactions, item.id, start, end, segment, data.categories) > 0)
       return <section className="panel budget-panel" key={segment ?? 'monthly'}>
         <div className="panel-heading"><div><h2>{segment ? segments[segment] : 'Periode gajian'}</h2>
           <p>{segment ? 'Jatah per kategori' : rangeLabel(start, end)}</p></div>
           {rows.length < categories.length && <button className="button secondary" onClick={() => edit({ kind: 'budget', start, segment })}><Plus size={17} /> Atur limit</button>}</div>
         {listed.length ? listed.map(category => {
           const row = rows.find(item => item.categoryId === category.id)
-          const spent = row?.spent ?? spentBy(data.transactions, category.id, start, end, segment)
+          const spent = row?.spent ?? spentBy(data.transactions, category.id, start, end, segment, data.categories)
           const remaining = row ? row.limitIdr - spent : 0
           const detail = segment === 'weekdays' ? [start, addDays(start, 4)] : segment === 'saturday' ? [addDays(start, 5), addDays(start, 5)] : segment === 'sunday' ? [end, end] : [start, end]
           return <div className="budget-row" key={category.id}>
@@ -111,7 +111,10 @@ export function Budgets({ data, week, period, setWeek, setPeriod, mode, setMode,
 }
 
 export function exportRecords(data: Ledger, kind: 'transactions' | 'weekly' | 'monthly') {
-  const category = (id: string) => data.categories.find(item => item.id === id)?.name ?? ''
+  const category = (id: string) => {
+    const item = data.categories.find(row => row.id === id)
+    return item ? categoryLabel(data.categories, item) : ''
+  }
   const account = (id: string) => data.accounts.find(item => item.id === id)?.name ?? ''
   if (kind === 'transactions') {
     return csv([['Tanggal', 'Jenis', 'Kategori', 'Nominal IDR', 'Sumber dana', 'Tujuan transfer', 'Bagian minggu', 'Periode gajian', 'Catatan'],
@@ -123,12 +126,12 @@ export function exportRecords(data: Ledger, kind: 'transactions' | 'weekly' | 'm
   if (kind === 'weekly') return csv([['Awal minggu', 'Akhir minggu', 'Bagian', 'Kategori', 'Jatah IDR', 'Terpakai IDR', 'Sisa IDR'],
     ...data.weeklyBudgets.map(row => {
       const end = addDays(row.weekStart, 6)
-      const spent = spentBy(data.transactions, row.categoryId, row.weekStart, end, row.segment)
+      const spent = spentBy(data.transactions, row.categoryId, row.weekStart, end, row.segment, data.categories)
       return [row.weekStart, end, segments[row.segment], category(row.categoryId), row.limitIdr, spent, row.limitIdr - spent]
     })])
   return csv([['Awal periode', 'Akhir periode', 'Kategori', 'Jatah IDR', 'Terpakai IDR', 'Sisa IDR'], ...data.monthlyBudgets.map(row => {
     const end = periodEnd(row.periodStart)
-    const spent = spentBy(data.transactions, row.categoryId, row.periodStart, end)
+    const spent = spentBy(data.transactions, row.categoryId, row.periodStart, end, undefined, data.categories)
     return [row.periodStart, end, category(row.categoryId), row.limitIdr, spent, row.limitIdr - spent]
   })])
 }
@@ -172,7 +175,7 @@ export function Settings({ data, save, edit, notify, install, installed, account
       <section className="panel"><div className="panel-heading"><div><h2>Kategori</h2><p>Pengelompokan transaksi</p></div>
         <button className="button secondary" onClick={() => edit({ kind: 'category' })}><Plus size={16} /> Tambah</button></div>
         {data.categories.length ? data.categories.map(item => <button key={item.id} className="manage-row" onClick={() => edit({ kind: 'category', item })}>
-          <Glyph item={item} /><span><strong>{item.name}</strong><small>{transactionNames[item.type]}</small></span><span className="text-button">Edit</span>
+          <Glyph item={item} /><span><strong>{categoryLabel(data.categories, item)}</strong><small>{transactionNames[item.type]}</small></span><span className="text-button">Edit</span>
         </button>) : <Empty>Belum ada kategori.</Empty>}
       </section>
       <section className="panel data-panel"><div className="panel-heading"><div><h2>Data dan backup</h2><p>Data tersimpan di perangkat ini.</p></div></div>

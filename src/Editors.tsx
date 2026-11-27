@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
 import { Check, X } from 'lucide-react'
-import { accountTypes, colors, icons, parseMoney, segments, transactionNames, type Account, type Category, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
-import { Glyph, Select } from './ui.tsx'
+import { accountTypes, categoryLabel, colors, icons, parseMoney, segments, transactionNames, type Account, type Category, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
+import { AmountInput, Glyph, Select, VisualPicker } from './ui.tsx'
 
 export type Change = (current: Ledger) => Ledger
 export type Commit = (change: Change) => Promise<Ledger>
@@ -44,6 +44,12 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
             ? { ...base, type, fromAccountId: read(form, 'from'), toAccountId: read(form, 'to') }
             : { ...base, type, accountId: read(form, 'account'), categoryId: read(form, 'category') }
           form.set('savedId', tx.id)
+          const favorites = current.favorites ?? []
+          if (tx.type === 'expense' && read(form, 'favoriteAction')) {
+            const others = favorites.filter(item => item.accountId !== tx.accountId || item.categoryId !== tx.categoryId)
+            return { ...current, transactions: replaceById(current.transactions, tx), favorites:
+              read(form, 'favoriteAction') === 'add' ? [...others, { accountId: tx.accountId, categoryId: tx.categoryId }] : others }
+          }
           return { ...current, transactions: replaceById(current.transactions, tx) }
         }
         if (editor.kind === 'account') {
@@ -57,6 +63,7 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
         if (editor.kind === 'category') {
           const item: Category = {
             id: editor.item?.id ?? crypto.randomUUID(), name: read(form, 'name').trim(), type: read(form, 'type') as Category['type'],
+            ...(read(form, 'parent') ? { parentId: read(form, 'parent') } : {}),
             iconKey: read(form, 'icon') as Category['iconKey'], colorKey: read(form, 'color') as Category['colorKey'],
           }
           return { ...current, categories: replaceById(current.categories, item) }
@@ -95,7 +102,7 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
       <fieldset className="fields" disabled={busy}>
         {editor.kind === 'transaction' && <TransactionFields data={data} day={day} tx={editor.item} />}
         {editor.kind === 'account' && <AccountFields day={day} account={editor.item} />}
-        {editor.kind === 'category' && <CategoryFields category={editor.item} />}
+        {editor.kind === 'category' && <CategoryFields data={data} category={editor.item} />}
         {editor.kind === 'budget' && <BudgetFields data={data} editor={editor} />}
       </fieldset>
       {error && <p className="form-error" role="alert">{error}</p>}
@@ -117,24 +124,39 @@ function TransactionFields({ data, day, tx }: { data: Ledger; day: string; tx?: 
   const [category, setCategory] = useState(tx?.type !== 'transfer' ? tx?.categoryId ?? '' : '')
   const [from, setFrom] = useState(tx?.type === 'transfer' ? tx.fromAccountId : '')
   const [to, setTo] = useState(tx?.type === 'transfer' ? tx.toAccountId : '')
-  const matched = data.categories.filter(item => item.type === type)
-  const options = data.accounts.map(item => <option key={item.id} value={item.id}>{item.name}</option>)
+  const [favoriteAction, setFavoriteAction] = useState('')
+  const favorites = data.favorites ?? []
+  const favoriteExists = favorites.some(item => item.accountId === account && item.categoryId === category)
+  const isFavorite = favoriteAction ? favoriteAction === 'add' : favoriteExists
+  const matched = data.categories.filter(item => item.type === type).map(item => ({ ...item, name: categoryLabel(data.categories, item) }))
   const accountField = (title: string, inputName: string, value: string, update: (value: string) => void) =>
-    <Label title={title}><span className="with-icon"><Glyph item={data.accounts.find(item => item.id === value)} />
-      <Select aria-label={title} name={inputName} required value={value} onChange={event => update(event.target.value)}><option value="">Pilih sumber dana</option>{options}</Select></span></Label>
+    <VisualPicker label={title} name={inputName} value={value} placeholder="Pilih sumber dana" options={data.accounts}
+      onChange={value => { update(value); setFavoriteAction('') }} />
   return <>
     <div className="segmented">{Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
-      onClick={() => { setType(key as Transaction['type']); setCategory('') }}>{label}</button>)}</div>
+      onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{label}</button>)}</div>
     <input type="hidden" name="type" value={type} />
-    <Label title="Nominal"><span className="money-input"><span aria-hidden="true">Rp</span><input autoFocus required name="amount" inputMode="numeric" placeholder="0" defaultValue={tx?.amountIdr} /></span></Label>
+    {type === 'expense' && !tx && favorites.length > 0 && <div className="favorite-buttons" aria-label="Favorit transaksi">
+      {favorites.map(item => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
+        setAccount(item.accountId)
+        setCategory(item.categoryId)
+        setFavoriteAction('')
+      }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>)}
+    </div>}
+    <AmountInput name="amount" label="Nominal" autoFocus initial={tx?.amountIdr} />
     {type === 'transfer' ? <>
       {accountField('Akun asal', 'from', from, setFrom)}
       {accountField('Akun tujuan', 'to', to, setTo)}
     </> : <>
-      <Label title="Kategori"><span className="with-icon"><Glyph item={matched.find(item => item.id === category)} />
-        <Select aria-label="Kategori" required name="category" value={category} onChange={event => setCategory(event.target.value)}><option value="">Pilih kategori</option>
-          {matched.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></span></Label>
+      <VisualPicker label="Kategori" name="category" value={category} options={matched} placeholder="Pilih kategori"
+        onChange={value => { setCategory(value); setFavoriteAction('') }} />
       {accountField('Sumber dana', 'account', account, setAccount)}
+      {type === 'expense' && account && category && <>
+        <input type="hidden" name="favoriteAction" value={favoriteAction} />
+        <label className="checkbox"><input type="checkbox" checked={isFavorite} onChange={event => {
+          setFavoriteAction(event.target.checked === favoriteExists ? '' : event.target.checked ? 'add' : 'remove')
+        }} /> Simpan sebagai favorit</label>
+      </>}
     </>}
     <Label title="Tanggal"><input required name="date" type="date" max={day} defaultValue={tx?.date ?? day} /></Label>
     <Label title="Catatan (opsional)"><input name="note" placeholder="Contoh: makan siang" maxLength={160} defaultValue={tx?.note} /></Label>
@@ -145,8 +167,10 @@ function AppearanceFields({ item, defaultIcon = 'wallet' }: { item?: Account | C
   const [icon, setIcon] = useState(item?.iconKey ?? defaultIcon)
   const [color, setColor] = useState(item?.colorKey ?? 'jade')
   return <>
-    <Label title="Ikon"><Select aria-label="Ikon" name="icon" value={icon} onChange={event => setIcon(event.target.value as Account['iconKey'])}>
-      {Object.entries(icons).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</Select></Label>
+    <div className="field"><span>Ikon</span><div className="icon-picker" role="group" aria-label="Ikon">
+      {Object.entries(icons).map(([key, label]) => <button key={key} type="button" title={label} aria-label={label} aria-pressed={icon === key}
+        onClick={() => setIcon(key as Account['iconKey'])}><Glyph item={{ iconKey: key as Account['iconKey'], colorKey: color }} /></button>)}
+    </div><input type="hidden" name="icon" value={icon} /></div>
     <div className="field"><span>Warna</span><div className="swatches" role="group" aria-label="Warna">
       {Object.entries(colors).map(([key, label]) => <button type="button" key={key} data-color={key} aria-label={label} title={label} aria-pressed={color === key}
         onClick={() => setColor(key as Account['colorKey'])}>{color === key && <Check size={18} />}</button>)}
@@ -160,18 +184,24 @@ function AccountFields({ account, day }: { account?: Account; day: string }) {
     <Label title="Jenis"><Select name="type" defaultValue={account?.type ?? 'bank'}>
       {Object.entries(accountTypes).map(([key, label]) => <option value={key} key={key}>{label}</option>)}</Select></Label>
     <div className="form-columns">
-      <Label title="Saldo awal (Rp)"><input required name="openingBalance" inputMode="decimal" defaultValue={account?.openingBalanceIdr ?? 0} /></Label>
+      <AmountInput name="openingBalance" label="Saldo awal (Rp)" initial={account?.openingBalanceIdr ?? 0} signed />
       <Label title="Tanggal saldo awal"><input required name="openingDate" type="date" max={day} defaultValue={account?.openingDate ?? day} /></Label>
     </div>
     <label className="checkbox"><input type="checkbox" name="savings" defaultChecked={account?.isSavings} /> Akun khusus tabungan</label>
     <AppearanceFields item={account} defaultIcon="bank" />
   </>
 }
-function CategoryFields({ category }: { category?: Category }) {
+function CategoryFields({ category, data }: { category?: Category; data: Ledger }) {
+  const [type, setType] = useState(category?.type ?? 'expense')
+  const hasChildren = data.categories.some(item => item.parentId === category?.id && item.parentId)
+  const hasBudget = [...data.weeklyBudgets, ...data.monthlyBudgets].some(item => item.categoryId === category?.id)
   return <>
     <Label title="Nama kategori"><input required name="name" maxLength={60} defaultValue={category?.name} /></Label>
-    <Label title="Jenis"><Select name="type" defaultValue={category?.type ?? 'expense'}>
+    <Label title="Jenis"><Select name="type" value={type} onChange={event => setType(event.target.value as Category['type'])}>
       <option value="expense">Pengeluaran</option><option value="income">Pemasukan</option></Select></Label>
+    {type === 'expense' && !hasChildren && !hasBudget && <Label title="Kategori induk"><Select name="parent" defaultValue={category?.parentId ?? ''}>
+      <option value="">Kategori utama</option>{data.categories.filter(item => item.type === 'expense' && !item.parentId && item.id !== category?.id)
+        .map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Label>}
     <AppearanceFields item={category} defaultIcon="bag" />
   </>
 }
@@ -179,12 +209,12 @@ function BudgetFields({ data, editor }: { data: Ledger; editor: Extract<Editor, 
   const configured = editor.segment
     ? data.weeklyBudgets.filter(row => row.weekStart === editor.start && row.segment === editor.segment)
     : data.monthlyBudgets.filter(row => row.periodStart === editor.start)
-  const options = data.categories.filter(category => category.type === 'expense'
+  const options = data.categories.filter(category => category.type === 'expense' && !category.parentId
     && (!editor.categoryId ? !configured.some(row => row.categoryId === category.id) : category.id === editor.categoryId))
   return <>
     <p className="muted">{editor.segment ? segments[editor.segment] : 'Periode gajian'}</p>
     <Label title="Kategori"><Select name="category" required defaultValue={editor.categoryId ?? ''}>
       <option value="">Pilih kategori</option>{options.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}</Select></Label>
-    <Label title="Limit (Rp)"><input required name="limit" inputMode="numeric" defaultValue={editor.limit} placeholder="0" /></Label>
+    <AmountInput name="limit" label="Limit (Rp)" initial={editor.limit} />
   </>
 }

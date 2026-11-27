@@ -1,11 +1,11 @@
 export const accountTypes = { bank: 'Bank', digital_bank: 'Bank digital', cash: 'Tunai' } as const
-export const colors = { jade: 'Hijau', orange: 'Jingga', blue: 'Biru', violet: 'Ungu', rose: 'Merah muda', slate: 'Abu-abu' } as const
+export const colors = { jade: 'Hijau', orange: 'Jingga', blue: 'Biru', violet: 'Ungu', rose: 'Merah muda', slate: 'Abu-abu', red: 'Merah', yellow: 'Kuning', teal: 'Toska', brown: 'Cokelat' } as const
 export const icons = { bank: 'Bank', wallet: 'Dompet', card: 'Kartu', piggy: 'Tabungan', meal: 'Makan', bike: 'Transportasi', bag: 'Belanja', coffee: 'Kopi', house: 'Rumah', briefcase: 'Pekerjaan', zap: 'Tagihan', gift: 'Hadiah' } as const
 export const segments = { weekdays: 'Senin–Jumat', saturday: 'Sabtu', sunday: 'Minggu' } as const
 export const transactionNames = { expense: 'Pengeluaran', income: 'Pemasukan', transfer: 'Transfer' } as const
 type Appearance = { iconKey: keyof typeof icons; colorKey: keyof typeof colors }
 export type Account = Appearance & { id: string; name: string; type: keyof typeof accountTypes; openingBalanceIdr: number; openingDate: string; isSavings: boolean }
-export type Category = Appearance & { id: string; name: string; type: 'income' | 'expense' }
+export type Category = Appearance & { id: string; name: string; type: 'income' | 'expense'; parentId?: string }
 type TransactionBase = { id: string; date: string; amountIdr: number; note: string }
 export type Transaction = TransactionBase & (
   { type: 'income' | 'expense'; accountId: string; categoryId: string } |
@@ -14,7 +14,8 @@ export type Transaction = TransactionBase & (
 export type Segment = keyof typeof segments
 export type MonthlyBudget = { periodStart: string; categoryId: string; limitIdr: number }
 export type WeeklyBudget = { weekStart: string; segment: Segment; categoryId: string; limitIdr: number }
-export type Ledger = { schemaVersion: 1; demo: boolean; accounts: Account[]; categories: Category[]; transactions: Transaction[]; monthlyBudgets: MonthlyBudget[]; weeklyBudgets: WeeklyBudget[] }
+export type Favorite = { accountId: string; categoryId: string }
+export type Ledger = { schemaVersion: 1; demo: boolean; accounts: Account[]; categories: Category[]; transactions: Transaction[]; monthlyBudgets: MonthlyBudget[]; weeklyBudgets: WeeklyBudget[]; favorites?: Favorite[] }
 export const emptyLedger = (): Ledger => ({
   schemaVersion: 1, demo: false, accounts: [], categories: [], transactions: [], monthlyBudgets: [], weeklyBudgets: [],
 })
@@ -72,16 +73,24 @@ export function balanceFor(account: Account, transactions: Transaction[]) {
     return balance + (tx.type === 'expense' ? -tx.amountIdr : tx.amountIdr)
   }, account.openingBalanceIdr)
 }
-export const spentBy = (transactions: Transaction[], categoryId: string, start: string, end: string, segment?: Segment) =>
-  sum(transactions.filter(tx => tx.type === 'expense' && tx.categoryId === categoryId && inRange(tx.date, start, end)
+export const categoryContains = (categories: Category[], parent: string, actual: string) =>
+  parent === actual || categories.some(category => category.id === actual && category.parentId === parent)
+
+export const categoryLabel = (categories: Category[], category: Category) => {
+  const parent = categories.find(item => item.id === category.parentId)
+  return parent ? `${parent.name} / ${category.name}` : category.name
+}
+
+export const spentBy = (transactions: Transaction[], categoryId: string, start: string, end: string, segment?: Segment, categories: Category[] = []) =>
+  sum(transactions.filter(tx => tx.type === 'expense' && categoryContains(categories, categoryId, tx.categoryId) && inRange(tx.date, start, end)
     && (!segment || segmentFor(tx.date) === segment)).map(tx => tx.amountIdr))
 
 export function budgetRows(data: Ledger, start: string, segment?: Segment): Array<{ categoryId: string; limitIdr: number; spent: number }> {
   return segment
     ? data.weeklyBudgets.filter(row => row.weekStart === start && row.segment === segment)
-      .map(row => ({ ...row, spent: spentBy(data.transactions, row.categoryId, start, addDays(start, 6), segment) }))
+      .map(row => ({ ...row, spent: spentBy(data.transactions, row.categoryId, start, addDays(start, 6), segment, data.categories) }))
     : data.monthlyBudgets.filter(row => row.periodStart === start)
-      .map(row => ({ ...row, spent: spentBy(data.transactions, row.categoryId, start, periodEnd(start)) }))
+      .map(row => ({ ...row, spent: spentBy(data.transactions, row.categoryId, start, periodEnd(start), undefined, data.categories) }))
 }
 
 const keyOf = <T extends object>(catalog: T, value: unknown): value is keyof T =>
@@ -123,6 +132,17 @@ export function validateLedger(input: unknown): Ledger {
     requireValid(isText(category.id) && isText(category.name) && (category.type === 'income' || category.type === 'expense')
       && keyOf(icons, category.iconKey) && keyOf(colors, category.colorKey), 'Kategori tidak valid.')
   }
+  for (const category of data.categories) {
+    if (category.parentId === undefined) continue
+    const parent = categories.get(category.parentId)
+    requireValid(category.type === 'expense' && parent?.type === 'expense' && parent.id !== category.id && !parent.parentId,
+      'Pilih kategori induk pengeluaran yang valid.')
+  }
+  if (data.favorites !== undefined) {
+    requireValid(Array.isArray(data.favorites) && data.favorites.every(item => item && accounts.has(item.accountId)
+      && categories.get(item.categoryId)?.type === 'expense'), 'Favorit transaksi tidak valid.')
+    requireValid(unique(data.favorites.map(item => JSON.stringify([item.accountId, item.categoryId]))), 'Terdapat favorit ganda.')
+  }
   for (const tx of data.transactions) {
     requireValid(isText(tx.id) && validDate(tx.date) && typeof tx.note === 'string'
       && Number.isSafeInteger(tx.amountIdr) && tx.amountIdr > 0, 'Tanggal atau nominal transaksi tidak valid.')
@@ -148,7 +168,7 @@ export function validateLedger(input: unknown): Ledger {
   }
   for (const row of [...data.weeklyBudgets, ...data.monthlyBudgets]) {
     requireValid(Number.isSafeInteger(row.limitIdr) && row.limitIdr >= 0
-      && categories.get(row.categoryId)?.type === 'expense', 'Limit budget atau kategori tidak valid.')
+      && categories.get(row.categoryId)?.type === 'expense' && !categories.get(row.categoryId)?.parentId, 'Limit budget atau kategori tidak valid.')
   }
   requireValid(unique(data.monthlyBudgets.map(row => JSON.stringify([row.periodStart, row.categoryId])))
     && unique(data.weeklyBudgets.map(row => JSON.stringify([row.weekStart, row.segment, row.categoryId]))), 'Terdapat limit ganda.')
