@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Layout mobile Ringkasan, Insight, dan Catat transaksi
+
+- Ringkasan menonjolkan total pengeluaran dan progres budget. Insight menampilkan grafik dan rincian per kategori untuk minggu ini, satu periode gajian, tiga periode, atau dua belas periode. Form transaksi menampilkan nominal besar dan kisi kategori. Tombol tambah ada di tengah navigasi bawah.
+- Verifikasi lokal mencakup build, 15 tes, navigasi dan periode Insight, pencatatan pengeluaran contoh, tautan grafik ke Riwayat, serta akses form pemasukan dan transfer. Perubahan ini bisa dipasang lewat Vercel Preview tanpa migrasi Supabase.
+
 ### 27 November 2026 — Form, budget, dan sinkronisasi
 
 - **Form transaksi.** Pemilih kategori dan sumber dana menampilkan ikon berwarna. Pemilih ikon di Pengaturan memakai kisi, dengan pilihan warna tambahan. Nominal memakai pemisah ribuan saat diketik dan tombol `000`. Quick fill favorit mengisi kategori dan sumber dana. [Commit `8872a58`](https://github.com/RaphChristophr/PocketPulse/commit/8872a58)

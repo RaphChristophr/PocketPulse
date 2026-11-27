@@ -293,6 +293,24 @@ Memeriksa pengingat…|Checking reminder availability…
 Pengingat belum tersedia. Buka kembali PocketPulse saat online.|Reminders are unavailable. Reopen PocketPulse when online.
 Nonaktifkan pengingat|Turn off reminders
 Aktifkan pengingat|Turn on reminders
+Pengeluaran periode ini|Spent this period
+{percent} dari budget {amount}|{percent} of {amount} budget
+Budget belum diatur|No budget set
+Sisa {count} hari|{count} days left
+Rata-rata harian|Daily average
+Terbesar|Largest expense
+Tren pengeluaran|Spending trend
+Lihat semua|View all
+dari {amount}|of {amount}
+3 periode|3 periods
+12 periode|12 periods
+Tren pengeluaran dan budget|Spending trends and budgets
+Periode pengeluaran|Spending period
+Dibanding periode sebelumnya|Compared with the previous period
+vs sebelumnya|vs previous
+Rincian kategori|Category breakdown
+Target budget|Budget goals
+Grafik pengeluaran|Spending chart
 `.trim().split('\n').map(line => line.split('|') as [string, string]))
 
 export function t(source: string, params?: Record<string, string | number>, selected = getLanguage()) {

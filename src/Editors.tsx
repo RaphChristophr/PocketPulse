@@ -1,6 +1,6 @@
 import { t } from './domain/language.ts'
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Check, X } from 'lucide-react'
+import { Check, ChevronLeft, X } from 'lucide-react'
 import { accountTypes, categoryLabel, colors, icons, parseMoney, rupiah, segments, transactionNames, type Account, type Category, type Ledger, type Segment, type Transaction } from './domain/finance.ts'
 import { titheAllocations, titheAmount, titheCategory } from './domain/tithe.ts'
 import { AmountInput, Glyph, Select, VisualPicker } from './ui.tsx'
@@ -22,6 +22,13 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
   const dialog = useRef<HTMLDialogElement>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const linkedId = editor.kind === 'transaction'
+    ? editor.titheIncomeId ?? (editor.item?.type === 'expense' ? editor.item.titheIncomeId : undefined)
+    : undefined
+  const linkedAllocation = linkedId ? titheAllocations(data.transactions).find(row => row.income.id === linkedId) : undefined
+  const initialAmount = editor.kind === 'transaction' ? editor.item?.amountIdr ?? linkedAllocation?.outstanding : undefined
+  const [amount, setAmount] = useState(initialAmount ?? 0)
+  const isTransaction = editor.kind === 'transaction'
   useEffect(() => { dialog.current?.showModal() }, [])
   const title = editor.kind === 'transaction' ? (editor.item ? t("Edit transaksi") : t("Catat transaksi"))
     : editor.kind === 'account' ? (editor.item ? t("Edit sumber dana") : t("Tambah sumber dana"))
@@ -111,11 +118,12 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
     })
   }
   const canDelete = (editor.kind === 'transaction' && editor.item) || (editor.kind === 'budget' && editor.limit !== undefined)
-  return <dialog ref={dialog} className="dialog" onCancel={event => { event.preventDefault(); if (!busy) close() }} aria-labelledby="editor-heading">
-    <div className="dialog-heading"><h2 id="editor-heading">{title}</h2><button type="button" className="icon-button" onClick={close} disabled={busy} aria-label={t("Tutup")}><X size={22} /></button></div>
+  return <dialog ref={dialog} className={isTransaction ? "dialog transaction-dialog" : "dialog"} onCancel={event => { event.preventDefault(); if (!busy) close() }} aria-labelledby="editor-heading">
+    <div className="dialog-heading"><h2 id="editor-heading">{title}</h2><button type="button" className="icon-button" onClick={close} disabled={busy} aria-label={t("Tutup")}>{isTransaction ? <ChevronLeft size={22} /> : <X size={22} />}</button></div>
     <form onSubmit={submit}>
       <fieldset className="fields" disabled={busy}>
-        {editor.kind === 'transaction' && <TransactionFields data={data} day={day} tx={editor.item} titheIncomeId={editor.titheIncomeId} />}
+        {editor.kind === 'transaction' && <TransactionFields data={data} day={day} tx={editor.item} linkedId={linkedId} linkedAllocation={linkedAllocation}
+          amount={amount} initialAmount={initialAmount} setAmount={setAmount} />}
         {editor.kind === 'account' && <AccountFields day={day} account={editor.item} />}
         {editor.kind === 'category' && <CategoryFields data={data} category={editor.item} />}
         {editor.kind === 'budget' && <BudgetFields data={data} editor={editor} />}
@@ -123,7 +131,7 @@ export function EditorDialog({ editor, data, day, save, onSaved, close }: {
       {error && <p className="form-error" role="alert">{error}</p>}
       <div className="dialog-actions">
         {canDelete && <button className="button danger" type="button" onClick={remove} disabled={busy}>{t("Hapus")}</button>}
-        <button className="button primary" type="submit" disabled={busy}>{busy ? t("Menyimpan…") : t("Simpan")}</button>
+        <button className="button primary" type="submit" disabled={busy}>{busy ? t("Menyimpan…") : isTransaction && Number.isSafeInteger(amount) && amount > 0 ? `${t("Simpan")} · ${rupiah(amount)}` : t("Simpan")}</button>
       </div>
     </form>
   </dialog>
@@ -133,10 +141,10 @@ function Label({ title, children }: { title: string; children: ReactNode }) {
   return <label className="field"><span>{title}</span>{children}</label>
 }
 
-function TransactionFields({ data, day, tx, titheIncomeId }: { data: Ledger; day: string; tx?: Transaction; titheIncomeId?: string }) {
-  const linkedId = titheIncomeId ?? (tx?.type === 'expense' ? tx.titheIncomeId : undefined)
-  const linkedAllocation = linkedId ? titheAllocations(data.transactions).find(row => row.income.id === linkedId) : undefined
-  const [amount, setAmount] = useState(tx?.amountIdr ?? linkedAllocation?.outstanding ?? 0)
+function TransactionFields({ data, day, tx, linkedId, linkedAllocation, amount, initialAmount, setAmount }: {
+  data: Ledger; day: string; tx?: Transaction; linkedId?: string; linkedAllocation?: ReturnType<typeof titheAllocations>[number];
+  amount: number; initialAmount?: number; setAmount: (amount: number) => void;
+}) {
   const [tithe, setTithe] = useState(tx?.type === 'income' && tx.tithe === true)
   const [type, setType] = useState<Transaction['type']>(tx?.type ?? 'expense')
   const [account, setAccount] = useState(tx?.type !== 'transfer' ? tx?.accountId ?? '' : '')
@@ -147,41 +155,53 @@ function TransactionFields({ data, day, tx, titheIncomeId }: { data: Ledger; day
   const favorites = data.favorites ?? []
   const favoriteExists = favorites.some(item => item.accountId === account && item.categoryId === category)
   const isFavorite = favoriteAction ? favoriteAction === 'add' : favoriteExists
-  const matched = data.categories.filter(item => item.type === type && item.id !== titheCategory.id).map(item => ({ ...item, name: categoryLabel(data.categories, item) }))
+  const matched = data.categories.filter(item => item.type === type && item.id !== titheCategory.id)
   const accountField = (title: string, inputName: string, value: string, update: (value: string) => void) =>
     <VisualPicker label={title} name={inputName} value={value} placeholder={t("Pilih sumber dana")} options={data.accounts}
       onChange={value => { update(value); setFavoriteAction('') }} />
   return <>
-    {linkedId ? <p className="muted">{t("Pembayaran Tithe")}</p> : <div className="segmented">{Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
-      onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{t(label)}</button>)}</div>}
-    <input type="hidden" name="type" value={type} />
-    {type === 'expense' && !tx && !linkedId && favorites.length > 0 && <div className="favorite-buttons" aria-label={t("Favorit transaksi")}>
-      {favorites.map(item => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
-        setAccount(item.accountId)
-        setCategory(item.categoryId)
-        setFavoriteAction('')
-      }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>)}
-    </div>}
-    <AmountInput name="amount" label={t("Nominal")} autoFocus initial={tx?.amountIdr ?? linkedAllocation?.outstanding} onAmount={raw => setAmount(Number(raw))} />
-    {type === 'transfer' ? <>
-      {accountField(t("Akun asal"), 'from', from, setFrom)}
-      {accountField(t("Akun tujuan"), 'to', to, setTo)}
-    </> : <>
-      {linkedId ? <><input type="hidden" name="titheIncomeId" value={linkedId} />
-        <p className="muted">{linkedAllocation?.income.note || t("Alokasi Tithe yang dipilih")}</p></>
-        : <VisualPicker label={t("Kategori")} name="category" value={category} options={matched} placeholder={t("Pilih kategori")}
-          onChange={value => { setCategory(value); setFavoriteAction('') }} />}
-      {accountField(t("Sumber dana"), 'account', account, setAccount)}
+    <div className="transaction-amount">
+      <AmountInput name="amount" label={t("Nominal")} initial={initialAmount} prefix="Rp" onAmount={raw => setAmount(Number(raw))} />
+    </div>
+    <div className="transaction-sheet">
+      {linkedId ? <h3>{t("Pembayaran Tithe")}</h3> : <div className="segmented" role="group" aria-label={t("Jenis")}>
+        {Object.entries(transactionNames).map(([key, label]) => <button type="button" key={key} aria-pressed={key === type}
+          onClick={() => { if (type !== key) { setType(key as Transaction['type']); setCategory(''); setFavoriteAction('') } }}>{t(label)}</button>)}</div>}
+      <input type="hidden" name="type" value={type} />
+      {type === 'expense' && !tx && !linkedId && favorites.length > 0 && <div className="favorite-buttons" aria-label={t("Favorit transaksi")}>
+        {favorites.map(item => <button className="button secondary" type="button" key={JSON.stringify(item)} onClick={() => {
+          setAccount(item.accountId)
+          setCategory(item.categoryId)
+          setFavoriteAction('')
+        }}>{data.categories.find(category => category.id === item.categoryId)?.name} · {data.accounts.find(account => account.id === item.accountId)?.name}</button>)}
+      </div>}
+      {type === 'transfer' ? <div className="form-columns">
+        {accountField(t("Akun asal"), 'from', from, setFrom)}
+        {accountField(t("Akun tujuan"), 'to', to, setTo)}
+      </div> : linkedId ? <>
+        <input type="hidden" name="titheIncomeId" value={linkedId} />
+        <p className="muted">{linkedAllocation?.income.note || t("Alokasi Tithe yang dipilih")}</p>
+      </> : <fieldset className="category-choice">
+        <legend>{t("Kategori")}</legend>
+        {matched.length ? <div className="category-grid">{matched.map(item => <label key={item.id}>
+          <input type="radio" name="category" value={item.id} required checked={category === item.id}
+            onChange={() => { setCategory(item.id); setFavoriteAction('') }} />
+          <Glyph item={item} size={22} /><span>{categoryLabel(data.categories, item)}</span>
+        </label>)}</div> : <p className="muted">{t("Belum ada kategori.")}</p>}
+      </fieldset>}
+      <div className="form-columns transaction-details">
+        <Label title={t("Tanggal")}><input required name="date" type="date" min={linkedAllocation?.income.date} max={day} defaultValue={tx?.date ?? day} /></Label>
+        {type !== 'transfer' && accountField(t("Sumber dana"), 'account', account, setAccount)}
+      </div>
+      <Label title={t("Catatan (opsional)")}><input name="note" placeholder={t("Contoh: makan siang")} maxLength={160} defaultValue={tx?.note} /></Label>
       {type === 'expense' && !linkedId && account && category && <>
         <input type="hidden" name="favoriteAction" value={favoriteAction} />
         <label className="checkbox"><input type="checkbox" checked={isFavorite} onChange={event => {
           setFavoriteAction(event.target.checked === favoriteExists ? '' : event.target.checked ? 'add' : 'remove')
         }} /> {t("Simpan sebagai favorit")}</label>
       </>}
-    </>}
-    {type === 'income' && <label className="checkbox"><input type="checkbox" name="tithe" checked={tithe} onChange={event => setTithe(event.target.checked)} />{t("Sisihkan Tithe (10%)")}{tithe && Number.isSafeInteger(amount) && amount >= 0 ? ` · ${rupiah(titheAmount(amount))}` : ''}</label>}
-    <Label title={t("Tanggal")}><input required name="date" type="date" min={linkedAllocation?.income.date} max={day} defaultValue={tx?.date ?? day} /></Label>
-    <Label title={t("Catatan (opsional)")}><input name="note" placeholder={t("Contoh: makan siang")} maxLength={160} defaultValue={tx?.note} /></Label>
+      {type === 'income' && <label className="checkbox"><input type="checkbox" name="tithe" checked={tithe} onChange={event => setTithe(event.target.checked)} />{t("Sisihkan Tithe (10%)")}{tithe && Number.isSafeInteger(amount) && amount >= 0 ? ` · ${rupiah(titheAmount(amount))}` : ''}</label>}
+    </div>
   </>
 }
 

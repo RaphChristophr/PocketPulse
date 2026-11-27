@@ -57,8 +57,8 @@ export function VisualPicker({ label, name, value, options, placeholder, onChang
   </div>
 }
 
-export function AmountInput({ name, label, initial, signed = false, autoFocus, onAmount, language = getLanguage() }: {
-  name: string; label: string; initial?: number; signed?: boolean; autoFocus?: boolean; onAmount?: (raw: string) => void; language?: Language;
+export function AmountInput({ name, label, initial, signed = false, autoFocus, onAmount, prefix, language = getLanguage() }: {
+  name: string; label: string; initial?: number; signed?: boolean; autoFocus?: boolean; onAmount?: (raw: string) => void; prefix?: string; language?: Language;
 }) {
   const [raw, setRaw] = useState(initial === undefined ? '' : String(initial))
   const box = useRef<HTMLInputElement>(null)
@@ -87,6 +87,7 @@ export function AmountInput({ name, label, initial, signed = false, autoFocus, o
   }
   return <div className="field"><span>{label}</span>
     <div className="money-input">
+      {prefix && <span aria-hidden="true" className="amount-prefix">{prefix}</span>}
       <input ref={box} aria-label={label} autoFocus={autoFocus} required inputMode={signed ? 'decimal' : 'numeric'}
         placeholder="0" value={groupedAmount(raw, language)} onChange={event => update(event.currentTarget.value, event.currentTarget.selectionStart ?? undefined)} />
       <input type="hidden" name={name} value={raw} />

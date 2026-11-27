@@ -1,7 +1,7 @@
 import { t } from './domain/language.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Activity, ArrowLeftRight, ChartPie, ChevronRight, CircleCheck, CloudOff, LayoutDashboard, Plus, Settings2, X } from 'lucide-react'
-import { Dashboard } from './Dashboard'
+import { Activity, ArrowLeftRight, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings2, SquareActivity, Wallet, X } from 'lucide-react'
+import { Dashboard, Insight } from './Dashboard'
 import { EditorDialog, type Change, type Editor } from './Editors'
 import { Budgets, History, Settings } from './Pages'
 import { demoLedger } from './domain/demo.ts'
@@ -12,10 +12,11 @@ import type { Pwa } from './usePwa'
 import { useCloudSync } from './useCloudSync'
 
 const routes = [
-  { id: 'ringkasan', name: 'Ringkasan', icon: LayoutDashboard },
-  { id: 'riwayat', name: 'Riwayat', icon: ArrowLeftRight },
-  { id: 'budget', name: 'Budget', icon: ChartPie },
+  { id: 'ringkasan', name: 'Ringkasan', icon: House },
+  { id: 'insight', name: 'Insight', icon: SquareActivity },
+  { id: 'budget', name: 'Budget', icon: Wallet },
   { id: 'pengaturan', name: 'Pengaturan', icon: Settings2 },
+  { id: 'riwayat', name: 'Riwayat', icon: ArrowLeftRight },
 ] as const
 
 function getRoute() {
@@ -77,6 +78,12 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     return () => clearTimeout(timer)
   }, [toast])
 
+  useEffect(() => {
+    if (data && route.screen === 'pengaturan' && route.filters.get('bagian') === 'pengingat') {
+      document.getElementById('pengingat')?.scrollIntoView({ block: 'center' })
+    }
+  }, [data, route])
+
   function navigate(path: string) {
     window.location.hash = path
   }
@@ -132,13 +139,15 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     <aside className="sidebar">
       <a className="brand" href="#ringkasan"><span className="brand-mark"><Activity size={22} strokeWidth={2.35} /></span><span>PocketPulse</span></a>
       <nav className="main-nav" aria-label={t("Navigasi utama")}>{routes.map(({ id, name, icon: Symbol }) =>
-        <a key={id} href={`#${id}`} aria-current={route.screen === id ? 'page' : undefined}><Symbol size={19} strokeWidth={1.8} /><span>{t(name)}</span></a>)}</nav>
+        <a key={id} className={`nav-${id}`} href={`#${id}`} aria-current={route.screen === id ? 'page' : undefined}><Symbol size={21} strokeWidth={1.8} /><span>{t(name)}</span></a>)}
+        {data && <button className="quick-add" aria-label={t("Catat transaksi")} onClick={() => openTransaction()}><Plus size={30} /></button>}
+      </nav>
       <div className="sidebar-bottom">
         {data?.demo && <button className="workspace-label" onClick={() => navigate('pengaturan')}><span className="avatar">P</span><span><strong>{t("Ruang contoh")}</strong><small>{t("Data demo")}</small></span><ChevronRight size={15} /></button>}
         {!data?.demo && <div className="workspace-label"><span className="avatar">P</span><span><strong>{t("Ruang pribadi")}</strong><small>{t("Perangkat ini")}</small></span></div>}
       </div>
     </aside>
-    <div className="workspace">
+    <div className="workspace" data-screen={data ? route.screen : undefined}>
       <header className="topbar">
         <a className="brand mobile-brand" href="#ringkasan"><span className="brand-mark"><Activity size={19} strokeWidth={2.35} /></span><span>PocketPulse</span></a>
         <span className="desktop-breadcrumb">{t("Keuangan pribadi")} <ChevronRight size={14} /> <strong>{t(routes.find(item => item.id === route.screen)?.name ?? '')}</strong></span>
@@ -152,7 +161,8 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
         {!data && <section className="panel loading-panel"><h1>PocketPulse</h1><p>{storageError ? t("Penyimpanan perangkat gagal dibuka.") : t("Memuat catatan keuangan…")}</p>
           {storageError && <button className="button secondary" onClick={() => window.location.reload()}>{t("Coba lagi")}</button>}</section>}
         {data && route.screen === 'ringkasan' && <Dashboard data={data} day={day} period={period} setPeriod={setPeriod}
-          navigate={navigate} openTransaction={openTransaction} drillDown={drillDown} />}
+          initials={account?.email.slice(0, 1).toUpperCase()} reminders={Boolean(account)} openTransaction={openTransaction} drillDown={drillDown} />}
+        {data && route.screen === 'insight' && <Insight data={data} day={day} period={period} setPeriod={setPeriod} drillDown={drillDown} />}
         {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={filters => navigate(`riwayat?${filters}`)}
           edit={item => item.kind === 'transaction' && !item.titheIncomeId ? openTransaction(item.item) : setEditor(item)} />}
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}
@@ -160,7 +170,6 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
         {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed}
           account={account} cloudSync={cloudSync} />}
       </main>
-      {data && <button className="quick-add" aria-label={t("Catat transaksi")} onClick={() => openTransaction()}><Plus size={23} /></button>}
     </div>
     {editor && data && <EditorDialog editor={editor} data={data} day={day} save={save} onSaved={onSaved} close={() => setEditor(null)} />}
     {toast && <div className="toast" role="status"><div><strong>{toast.message}</strong>{toast.details?.map(detail => <p key={detail}>{detail}</p>)}</div>

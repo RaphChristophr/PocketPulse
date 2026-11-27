@@ -87,7 +87,7 @@ export function ReminderSettings({ ownerId }: { ownerId: string }) {
     } finally { setBusy(false) }
   }
 
-  return <section className="panel data-panel">
+  return <section className="panel data-panel" id="pengingat">
     <div className="panel-heading"><div><h2>{t('Pengingat harian')}</h2><p>{t('Catat pengeluaranmu setiap malam pukul 20.00 WIB.')}</p></div><Bell className="panel-icon" size={19} /></div>
     {!supported ? <p className="muted">{t('Buka PocketPulse sebagai PWA di perangkat yang mendukung notifikasi.')}</p>
       : availability === 'loading' ? <p className="muted">{t('Memeriksa pengingat…')}</p>

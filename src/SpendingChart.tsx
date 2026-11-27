@@ -1,29 +1,54 @@
+import { useId, useState } from 'react'
 import { t } from './domain/language.ts'
-import { useState } from 'react'
-import { addDays, periodEnd, rupiah, shortDate, weekStart, type Ledger } from './domain/finance.ts'
-import { spendingDays } from './domain/spending.ts'
+import { rupiah, shortDate } from './domain/finance.ts'
 
-export function SpendingChart({ data, day, period, drillDown }: {
-  data: Ledger; day: string; period: string; drillDown: (category: string, start: string, end: string) => void;
+type SpendingPoint = { start: string; end: string; spent: number }
+
+export function SpendingChart({ points, comparison, drillDown }: {
+  points: SpendingPoint[]; comparison?: number[]; drillDown: (category: string, start: string, end: string) => void;
 }) {
-  const [mode, setMode] = useState<'week' | 'period'>('week')
+  const gradient = useId()
   const [selected, setSelected] = useState('')
-  const start = mode === 'week' ? weekStart(day) : period
-  const values = spendingDays(data.transactions, start, mode === 'week' ? addDays(start, 6) : periodEnd(period))
-  const active = values.find(item => item.date === selected) ?? values.find(item => item.date === day) ?? values[0]
-  const max = Math.max(1, ...values.map(item => item.spent))
-  return <section className="panel spending-chart">
-    <div className="panel-heading"><div><h2>{t("Pengeluaran per hari")}</h2><p>{t("Ketuk batang untuk melihat nominal")}</p></div></div>
-    <div className="segmented"><button aria-pressed={mode === 'week'} onClick={() => setMode('week')}>{t("Minggu ini")}</button>
-      <button aria-pressed={mode === 'period'} onClick={() => setMode('period')}>{t("Periode gajian")}</button></div>
-    <div className="chart-bars" aria-label={t("Grafik pengeluaran per hari")}>
-      {values.map(({ date, spent }, index) => <button key={date} type="button" onClick={() => setSelected(date)}
-        aria-label={`${shortDate(date)}: ${rupiah(spent)}`} aria-pressed={date === active.date}>
-        <span style={{ blockSize: `${spent ? spent / max * 100 : 3}%` }} aria-hidden="true" />
-        <small aria-hidden="true">{mode === 'week' || index % 5 === 0 ? date.slice(-2) : ''}</small>
-      </button>)}
+  const active = points.find(point => point.start === selected)
+  if (!points.length) return null
+
+  const values = points.map(point => point.spent)
+  const max = Math.max(1, ...values, ...(comparison ?? []))
+  const width = 400
+  const floor = 108
+  const x = (index: number) => points.length > 1 ? index * width / (points.length - 1) : width / 2
+  const y = (amount: number) => floor - amount * 98 / max
+  const lineFor = (amounts: number[]) => amounts.reduce((path, amount, index) => {
+    if (index === 0) return points.length === 1 ? `M0,${y(amount)} H${width}` : `M0,${y(amount)}`
+    const middle = (x(index - 1) + x(index)) / 2
+    return `${path} C${middle},${y(amounts[index - 1])} ${middle},${y(amount)} ${x(index)},${y(amount)}`
+  }, '')
+  const line = lineFor(values)
+  const tickCount = Math.min(points.length, 5)
+  const ticks = Array.from({ length: tickCount }, (_, index) =>
+    Math.round(index * (points.length - 1) / Math.max(1, tickCount - 1)))
+
+  return <>
+    <div className="trend-plot">
+      <svg viewBox={`0 0 ${width} 112`} preserveAspectRatio="none" aria-hidden="true">
+        <defs><linearGradient id={gradient} x2="0%" y2="100%" gradientUnits="objectBoundingBox">
+          <stop stopColor="currentColor" stopOpacity=".2" /><stop offset="1" stopColor="currentColor" stopOpacity="0" />
+        </linearGradient></defs>
+        {[12, 60, floor].map(level => <path key={level} className="trend-gridline" d={`M0 ${level} H${width}`} />)}
+        <path fill={`url(#${gradient})`} d={`${line} L${width},${floor} H0 Z`} />
+        {comparison && <path className="trend-compare" d={lineFor(comparison)} />}
+        <path className="trend-line" d={line} />
+        {active && <circle cx={x(points.indexOf(active))} cy={y(active.spent)} r="3.5" fill="currentColor" />}
+      </svg>
+      <div className="trend-hit" role="group" aria-label={t("Grafik pengeluaran")}>
+        {points.map(point => <button key={point.start} type="button" aria-pressed={active === point}
+          aria-label={`${shortDate(point.start)}${point.end === point.start ? '' : ` – ${shortDate(point.end)}`}, ${rupiah(point.spent)}`}
+          onClick={() => setSelected(point.start)} />)}
+      </div>
     </div>
-    <div className="chart-detail"><span>{shortDate(active.date)} · <strong>{rupiah(active.spent)}</strong></span>
-      <button className="text-button" onClick={() => drillDown('', active.date, active.date)}>{t("Lihat pengeluaran")}</button></div>
-  </section>
+    <div className="trend-dates" aria-hidden="true">{ticks.map(index =>
+      <span key={points[index].start}>{shortDate(points[index].start)}</span>)}</div>
+    {active && <div className="chart-detail"><span>{shortDate(active.start)}{active.end !== active.start && ` – ${shortDate(active.end)}`} · <strong>{rupiah(active.spent)}</strong></span>
+      <button className="text-button" onClick={() => drillDown('', active.start, active.end)}>{t("Lihat pengeluaran")}</button></div>}
+  </>
 }

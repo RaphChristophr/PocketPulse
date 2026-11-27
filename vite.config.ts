@@ -11,8 +11,8 @@ export default defineConfig({
       short_name: 'PocketPulse',
       description: 'Catatan keuangan dan budget pribadi',
       lang: 'id',
-      theme_color: '#f6f7f2',
-      background_color: '#f6f7f2',
+      theme_color: '#f7f7f9',
+      background_color: '#f7f7f9',
       display: 'standalone',
       icons: [
         { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
