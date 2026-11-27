@@ -48,11 +48,11 @@
 - Simpan perubahan ke perangkat terlebih dahulu. Jalankan sinkronisasi otomatis saat aplikasi dibuka kembali, setelah perubahan tersimpan ketika online, dan saat koneksi kembali selama aplikasi terbuka. Pertahankan tombol **Sinkronkan** untuk percobaan manual.
 - Jika catatan di dua perangkat sama-sama berubah sejak sinkronisasi terakhir, tampilkan konflik dan hentikan sinkronisasi untuk data itu sampai pengguna menentukannya. Uji perubahan dan penghapusan transaksi, koneksi yang putus lalu kembali, serta konflik lintas perangkat.
 
-## Pintasan transaksi favorit
+## Quick fill transaksi favorit
 
 **Status** — Direncanakan.
 
-- Pengguna bisa menyimpan kombinasi kategori dan sumber dana yang sering dipakai. Misalnya pilih **Ojek → Bank Digital 1**, lalu PocketPulse mengisi kedua kolom pada form transaksi.
+- Pengguna bisa menyimpan kombinasi kategori dan sumber dana yang sering dipakai. Tampilkan favorit sebagai tombol quick fill di form **Catat transaksi**. Misalnya, ketuk **Ojek → Bank Digital 1** untuk langsung mengisi kedua kolom itu.
 - Nominal tetap diisi pada setiap transaksi. Uji bahwa pintasan membuka form dengan nilai yang benar dan pengguna bisa menggantinya sebelum menyimpan.
 
 ## Sisa jatah yang berlaku hari ini
@@ -61,3 +61,32 @@
 
 - Di Ringkasan, tonjolkan sisa jatah per kategori untuk bagian minggu yang berlaku hari ini serta sisa jatah pada periode gajian 25–24.
 - Tampilkan kedua nominal secara terpisah. Contohnya pada Sabtu, tampilkan **Sisa Makan Sabtu** dan **Sisa Makan periode gajian**. Uji perpindahan Jumat ke Sabtu, Minggu ke Senin, dan tanggal 24 ke 25.
+
+## Tithe dalam budgeting
+
+**Status** — Direncanakan.
+
+- Sediakan **Tithe / Persepuluhan** sebagai kategori pengeluaran yang bisa diberi jatah pada periode gajian 25–24. Tampilkan jatah, terpakai, dan sisa seperti kategori lain.
+- Mulai dengan nominal jatah yang diisi pengguna. Evaluasi opsi menghitung jatah dari persentase pemasukan jika dibutuhkan.
+
+## Dropdown kategori dan sumber dana
+
+**Status** — Direncanakan.
+
+- Rapikan pemilih kategori dan sumber dana di form transaksi. Tampilkan ikon berwarna dan nama pada setiap opsi serta beri penanda pada pilihan yang aktif.
+- Uji pemilihan di HP, termasuk opsi akun asal dan tujuan untuk transfer serta nama kategori yang panjang.
+
+## Input nominal dengan pemisah ribuan dan tombol 000
+
+**Status** — Direncanakan.
+
+- Format nominal secara otomatis saat diketik, dengan pemisah setiap tiga digit. Contoh `25000` tampil sebagai `25.000` dalam Bahasa Indonesia dan `25,000` jika English aktif. Simpan nilai sebagai 25000 Rupiah.
+- Sediakan tombol **000** untuk menambahkan tiga nol dengan sekali ketuk. Contoh ketik `25` lalu tekan **000** untuk memasukkan Rp25.000.
+- Uji pengetikan, hapus digit, edit di tengah nominal, dan tempel angka yang sudah berformat. Pastikan nilai yang disimpan tetap sesuai dengan tampilan.
+
+## Subkategori pengeluaran
+
+**Status** — Direncanakan.
+
+- Izinkan kategori induk seperti **Transportasi** punya subkategori, misalnya **GoRide, GoCar, GrabBike, KRL, dan MRT**. Pengguna bisa memilih subkategori saat mencatat transaksi dan melihat rinciannya di Riwayat.
+- Usulan awalnya menggunakan satu jatah untuk kategori induk. Pengeluaran setiap subkategori mengurangi jatah Transportasi yang relevan pada periode mingguan dan bulanan. Di ringkasan, jumlahkan pengeluaran ke kategori induk satu kali, lalu sediakan rincian per subkategori.
