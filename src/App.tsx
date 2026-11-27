@@ -1,6 +1,6 @@
 import { t } from './domain/language.ts'
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
-import { Activity, ArrowLeftRight, ChartNoAxesColumn, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings2, SquareActivity, Wallet, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Activity, ArrowLeftRight, ChartNoAxesColumn, ChartPie, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings as SettingsIcon, Wallet, X } from 'lucide-react'
 import { Dashboard, Insight } from './Dashboard'
 import { Cashflow } from './Cashflow'
 import { EditorDialog, type Change, type Editor } from './Editors'
@@ -15,9 +15,9 @@ import { useCloudSync } from './useCloudSync'
 const routes = [
   { id: 'ringkasan', name: 'Ringkasan', icon: House },
   { id: 'cashflow', name: 'Cashflow', icon: ChartNoAxesColumn },
-  { id: 'insight', name: 'Insight', icon: SquareActivity },
+  { id: 'insight', name: 'Insight', icon: ChartPie },
   { id: 'budget', name: 'Budget', icon: Wallet },
-  { id: 'pengaturan', name: 'Pengaturan', icon: Settings2 },
+  { id: 'pengaturan', name: 'Pengaturan', icon: SettingsIcon },
   { id: 'riwayat', name: 'Riwayat', icon: ArrowLeftRight },
 ] as const
 
@@ -140,11 +140,13 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
   return <div className="app-shell">
     <aside className="sidebar">
       <a className="brand" href="#ringkasan"><span className="brand-mark"><Activity size={22} strokeWidth={2.35} /></span><span>PocketPulse</span></a>
-      <nav className="main-nav" aria-label={t("Navigasi utama")}>{routes.map(({ id, name, icon: Symbol }) =>
-        <Fragment key={id}>
-          {id === 'budget' && data && <button className="quick-add" aria-label={t("Catat transaksi")} onClick={() => openTransaction()}><Plus size={30} /></button>}
-          <a className={`nav-${id}`} href={`#${id}`} aria-current={route.screen === id ? 'page' : undefined}><Symbol size={21} strokeWidth={1.8} /><span>{t(name)}</span></a>
-        </Fragment>)}</nav>
+      <div className="main-nav-shell">
+        <nav className="main-nav" aria-label={t("Navigasi utama")}>{routes.map(({ id, name, icon: Symbol }) =>
+          <a key={id} className={`nav-${id}`} href={`#${id}`} aria-label={t(name)} aria-current={route.screen === id ? 'page' : undefined}>
+            <Symbol size={21} strokeWidth={1.8} aria-hidden="true" /><span>{t(name)}</span>
+          </a>)}</nav>
+        {data && <button type="button" className="quick-add" aria-label={t("Catat transaksi")} onClick={() => openTransaction()}><Plus size={25} aria-hidden="true" /></button>}
+      </div>
       <div className="sidebar-bottom">
         {data?.demo && <button className="workspace-label" onClick={() => navigate('pengaturan')}><span className="avatar">P</span><span><strong>{t("Ruang contoh")}</strong><small>{t("Data demo")}</small></span><ChevronRight size={15} /></button>}
         {!data?.demo && <div className="workspace-label"><span className="avatar">P</span><span><strong>{t("Ruang pribadi")}</strong><small>{t("Perangkat ini")}</small></span></div>}

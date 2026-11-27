@@ -14,7 +14,7 @@
 - **Ringkasan.** Tonjolkan saldo tersedia di header hijau. Tampilkan total saldo dan saldo tabungan serta dana darurat secara terpisah. Pindahkan pilihan periode dan progres budget ke bagian grafik pengeluaran, diikuti kartu kategori dan transaksi terbaru. Sediakan akses ke Riwayat lengkap dari daftar transaksi terbaru.
 - **Insight.** Sediakan layar untuk melihat tren pengeluaran berdasarkan periode, rincian pengeluaran per kategori, dan progres budget. Gunakan Rupiah dan pilihan periode PocketPulse, termasuk periode gajian tanggal 25–24.
 - **Catat transaksi.** Letakkan input nominal berukuran besar di bagian atas. Tampilkan kategori pengeluaran sebagai kisi ikon, lalu letakkan tanggal, sumber dana, dan catatan di bawahnya. Buat tombol Simpan mudah dijangkau dan pastikan alur pemasukan serta transfer tetap bisa diakses dari form.
-- **Navigasi mobile.** Susun Ringkasan, Insight, Budget, dan Pengaturan pada navigasi bawah dengan tombol **+** di tengah untuk membuka Catat transaksi. Uji pada layar HP sempit dan saat keyboard terbuka agar konten dan tombol Simpan tetap bisa dijangkau.
+- **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Insight, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif dan tempatkan tombol **+** di sampingnya untuk membuka Catat transaksi. Gunakan ikon dengan nama aksesibel dan tampilkan nama menu aktif saat ruang cukup.
 
 ## Pengingat mencatat transaksi setiap malam
 

@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Navigasi HP mengambang
+
+- Jadikan navigasi bawah pil hijau gelap. Sorot ikon menu aktif, tampilkan namanya saat ruang cukup, dan letakkan tombol **+** di samping pil.
+- Build dan 18 tes lulus. Uji browser mencakup lima menu di layar 320–430 piksel, navigasi keyboard, simpan transaksi dari tombol **+**, dan tampilan desktop. Perubahan ini tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Cashflow berdasarkan bulan kalender
 
 - Tambah menu Cashflow dengan grafik pengeluaran interaktif, total pemasukan dan pengeluaran, arus kas bersih, serta kategori yang menaut ke Riwayat. Rekap memakai tanggal 1 hingga akhir bulan.

@@ -188,13 +188,48 @@ p { line-height: 1.5; }
   .topbar { min-height: 57px; padding-top: env(safe-area-inset-top, 0px); }
   .mobile-brand { display: inline-flex; font-size: 1.03rem; align-self: auto; }
   .mobile-brand .brand-mark { width: 32px; height: 32px; border-radius: 8px; }
-  .main-nav { position: fixed; inset: auto 0 0; z-index: 2; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) 54px repeat(2, minmax(0, 1.5fr)); grid-template-rows: 53px; background: color-mix(in srgb, var(--paper) 96%, transparent); border-top: 1px solid var(--line); box-shadow: 0 -5px 20px color-mix(in srgb, var(--ink) 5%, transparent); padding: 4px max(4px, env(safe-area-inset-right, 0px)) max(4px, env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); gap: 0; }
-  .main-nav a { flex-direction: column; justify-content: center; font-size: .65rem; min-height: 49px; padding: 4px 0; gap: 4px; }
-  .main-nav a[aria-current="page"] { background: transparent; }
-  .main-nav .nav-budget { grid-area: 1 / 5; }
-  .main-nav .nav-pengaturan { grid-area: 1 / 6; }
+  .main-nav-shell {
+    position: fixed;
+    inset-inline: max(12px, env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px));
+    inset-block-end: calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 2;
+    max-inline-size: 360px;
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .main-nav {
+    flex: 1;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0;
+    margin: 0;
+    padding: 5px;
+    border-radius: 999px;
+    background: var(--accent-deep);
+    box-shadow: 0 6px 20px var(--shadow);
+  }
+  .main-nav a {
+    justify-content: center;
+    gap: 6px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+    border-radius: 999px;
+    padding: 0 8px;
+    color: var(--dark-muted);
+    font-size: .72rem;
+    white-space: nowrap;
+  }
+  .main-nav a svg { flex: none; }
+  .main-nav a > span { display: none; }
+  .main-nav a:hover { background: var(--accent); color: var(--on-dark); }
+  .main-nav a[aria-current="page"] { background: var(--accent-bright); color: var(--accent-deep); }
+  .main-nav a:focus-visible { outline-color: var(--on-dark); outline-offset: -3px; }
+  .main-nav a[aria-current="page"]:focus-visible { outline-color: var(--accent-deep); }
   .main-nav .nav-riwayat { display: none; }
-  .quick-add { grid-area: 1 / 4; justify-self: center; align-self: start; margin-top: -23px; display: grid; place-items: center; width: 54px; height: 54px; border: 0; border-radius: 50%; color: var(--on-dark); background: var(--action-gradient); box-shadow: 0 5px 15px var(--shadow); }
+  .quick-add { display: grid; place-items: center; flex: none; width: 52px; height: 52px; border: 0; border-radius: 50%; color: var(--on-dark); background: var(--accent); box-shadow: 0 6px 20px var(--shadow); }
+  .quick-add:hover { background: var(--accent-deep); }
   .content { padding-top: 20px; padding-bottom: calc(128px + env(safe-area-inset-bottom, 0px)); }
   .page-title { margin-bottom: 16px; }
   .page-title h1 { font-size: 1.8rem; }
@@ -381,7 +416,7 @@ p { line-height: 1.5; }
   .desktop-compose { display: none; }
   .spending-home-body { grid-template-columns: minmax(0, 1fr); position: relative; margin-top: -18px; padding: 14px 14px 0; gap: 15px; background: var(--canvas); border-radius: var(--sheet-radius) var(--sheet-radius) 0 0; }
   .category-cards { grid-auto-columns: max(150px, 58%); }
-  .toast { bottom: calc(82px + env(safe-area-inset-bottom, 0px)); }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
   .workspace:is([data-screen="insight"], [data-screen="cashflow"]) .content { padding-top: calc(20px + env(safe-area-inset-top, 0px)); }
   .transaction-dialog { width: 100%; max-width: none; height: 100%; max-height: 100dvh; margin: 0; border-radius: 0; }
   .transaction-dialog[open] { display: grid; grid-template-rows: auto 1fr; }
@@ -392,8 +427,6 @@ p { line-height: 1.5; }
   .transaction-dialog .dialog-actions { margin-top: auto; padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
 }
 
-@media (max-width: 360px) {
-  .main-nav { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1.1fr) minmax(0, .78fr) 48px repeat(2, minmax(0, 1.5fr)); }
-  .main-nav a { font-size: .62rem; }
-  .quick-add { width: 48px; height: 48px; margin-top: -17px; }
+@media (min-width: 380px) and (max-width: 760px) {
+  .main-nav a[aria-current="page"] > span { display: inline; }
 }

@@ -1,6 +1,6 @@
 # Wireframe PocketPulse
 
-Contoh tampilan HP dengan angka ilustrasi. Navigasi utama berisi Ringkasan, Riwayat, Budget, dan Pengaturan. Tombol Tambah tersedia dari Ringkasan dan Riwayat.
+Contoh tampilan HP dengan angka ilustrasi. Navigasi HP mengambang di bawah layar dan berisi Ringkasan, Cashflow, Insight, Budget, dan Pengaturan. Menu aktif disorot. Tombol **+** di samping navigasi membuka form Catat transaksi. Riwayat dibuka dari Ringkasan atau tautan rincian.
 
 Desain untuk mode PWA `standalone` dengan ruang aman di atas dan di bawah layar. Tampilkan petunjuk “Pasang PocketPulse” di Pengaturan saat dibuka dari browser yang mendukung. Saat offline, tampilkan status singkat “Offline · tersimpan di perangkat” sambil mempertahankan akses ke form dan ringkasan.
 
@@ -34,8 +34,7 @@ Pengeluaran terbesar · 25 Nov–24 Des
   Makan                               Rp350.000  >
   Ojek                                 Rp20.000  >
 
-[ + Catat transaksi ]
-Ringkasan      Riwayat      Budget      Pengaturan
+[ Ringkasan   Cashflow   Insight   Budget   Pengaturan ]    [ + ]
 ```
 
 Saldo menampilkan kondisi saat ini. Pemilih periode gajian mengubah rekap pengeluaran dan budget bulanan. Pintasan budget mingguan membuka minggu berjalan. Ketuk satu kategori untuk membuka Riwayat dengan periode dan kategori yang sesuai.
@@ -71,8 +70,7 @@ Riwayat
   Tarik tunai    Bank 1 → Tunai           Rp300.000  >
                  Transfer
 
-[ + Catat transaksi ]
-Ringkasan      Riwayat      Budget      Pengaturan
+[ Ringkasan   Cashflow   Insight   Budget   Pengaturan ]    [ + ]
 ```
 
 Ketuk transaksi untuk edit atau hapus. Transfer tampil sebagai satu entri, termasuk ketika riwayat difilter dengan akun tujuan.
