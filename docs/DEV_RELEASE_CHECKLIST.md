@@ -1,6 +1,6 @@
 # Checklist setelah perubahan dev PocketPulse
 
-Gunakan checklist ini setelah satu fase atau perubahan siap. Urutannya **cek lokal → commit → siapkan Supabase dev bila diperlukan → push ke GitHub → verifikasi Vercel Preview**. Branch `dev` dipakai untuk pengembangan. Merge ke `main` atau deploy Production memerlukan permintaan rilis terpisah.
+Jalankan langkah 1 setelah satu fase atau perubahan siap. Kumpulkan perbaikan sebagai commit lokal di branch `dev`. Saat pengguna meminta push, siapkan Supabase dev bila diperlukan, push kumpulan commit ke GitHub, lalu verifikasi Vercel Preview. Merge ke `main` atau deploy Production memerlukan permintaan rilis terpisah.
 
 - [Branch dev di GitHub](https://github.com/RaphChristophr/PocketPulse/tree/dev)
 - [Proyek Supabase dev](https://supabase.com/dashboard/project/pyhhusupwlynslfgessy)

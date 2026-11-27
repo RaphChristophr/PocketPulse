@@ -9,4 +9,4 @@
 ## Saat pengembangan berlanjut
 
 - Setelah satu tahap dev selesai, perbarui status item di backlog dan catat perubahan di bagian **Unreleased** pada `CHANGELOG.md`. Cantumkan tanggal WIB, ringkasan, hasil verifikasi yang relevan, dan aktivasi backend atau deployment yang masih tertunda. Gunakan nomor versi atau tag setelah rilisnya ditetapkan.
-- Ikuti [checklist setelah perubahan dev](docs/DEV_RELEASE_CHECKLIST.md). Jalankan pengecekan yang relevan, commit perubahan siap pakai, push ke `origin/dev`, lalu laporkan hash commit. Gunakan `main` atau deploy Production hanya saat diminta secara eksplisit.
+- Ikuti [checklist setelah perubahan dev](docs/DEV_RELEASE_CHECKLIST.md). Jalankan pengecekan yang relevan, commit perubahan siap pakai secara lokal, lalu laporkan hash commit. Kumpulkan beberapa perbaikan dan push ke `origin/dev` saat pengguna meminta. Gunakan `main` atau deploy Production hanya saat diminta secara eksplisit.
