@@ -62,12 +62,15 @@
 - Di Ringkasan, tonjolkan sisa jatah per kategori untuk bagian minggu yang berlaku hari ini serta sisa jatah pada periode gajian 25–24.
 - Tampilkan kedua nominal secara terpisah. Contohnya pada Sabtu, tampilkan **Sisa Makan Sabtu** dan **Sisa Makan periode gajian**. Uji perpindahan Jumat ke Sabtu, Minggu ke Senin, dan tanggal 24 ke 25.
 
-## Tithe dalam budgeting
+## Alokasi dan pembayaran Tithe
 
 **Status** — Direncanakan.
 
-- Sediakan **Tithe / Persepuluhan** sebagai kategori pengeluaran yang bisa diberi jatah pada periode gajian 25–24. Tampilkan jatah, terpakai, dan sisa seperti kategori lain.
-- Mulai dengan nominal jatah yang diisi pengguna. Evaluasi opsi menghitung jatah dari persentase pemasukan jika dibutuhkan.
+- Tambahkan checklist **Sisihkan Tithe (10%)** pada form pemasukan. Saat dicentang, tampilkan pratinjau nominal dan simpan alokasi yang terhubung ke pemasukan tersebut. Contoh, gaji Rp5.000.000 menambah alokasi Tithe Rp500.000 pada periode gajian 25–24 sesuai tanggal pemasukan.
+- Tampilkan **Dialokasikan, Sudah dibayar, dan Belum dibayar** di Budget Tithe. Alokasi menandai uang yang disisihkan. Saldo sumber dana berkurang saat pembayaran Tithe benar-benar dicatat sebagai pengeluaran. Transfer antar sumber dana sendiri tetap tercatat sebagai transfer dan alokasinya tetap terbuka.
+- Tampilkan riwayat per asal pemasukan dengan tanggal, nama atau catatan, nominal pemasukan, alokasi 10%, pembayaran terkait, dan status **Belum dibayar**, **Dibayar sebagian**, atau **Lunas**. Sisa yang belum dibayar tetap terlihat saat periode berganti.
+- Saat mencatat pembayaran, pengguna memilih alokasi yang dilunasi. Kaitkan pembayaran dengan alokasi dan tanggal pembayaran agar Riwayat Tithe bisa ditelusuri. Perubahan pemasukan memperbarui alokasi yang masih belum dibayar. Jika sudah ada pembayaran, tampilkan dampak perubahan sebelum pengguna menyimpan koreksi.
+- Uji bahwa pemasukan tanpa checklist tetap tercatat biasa, menyimpan ulang pemasukan tidak menggandakan alokasi, dan pembayaran maupun koreksinya memperbarui status serta saldo sesuai nominal yang benar.
 
 ## Dropdown kategori dan sumber dana
 
