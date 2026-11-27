@@ -295,3 +295,5 @@ p { line-height: 1.5; }
 .tithe-row { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
 .tithe-row h3 { margin: 0; font-size: 1rem; }
 .tithe-payment { display: block; text-align: left; }
+.sync-status { margin-top: 12px; padding: 12px; background: var(--wash); border-radius: var(--control); }
+.sync-status p { color: var(--muted); font-size: .87rem; }

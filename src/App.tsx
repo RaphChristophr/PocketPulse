@@ -8,6 +8,7 @@ import { budgetRows, emptyLedger, periodEnd, periodStart, rangeLabel, rupiah, se
 import { type CloudAccount } from './storage/cloud.ts'
 import { readLedger, updateLedger } from './storage/ledger.ts'
 import type { Pwa } from './usePwa'
+import { useCloudSync } from './useCloudSync'
 
 const routes = [
   { id: 'ringkasan', name: 'Ringkasan', icon: LayoutDashboard },
@@ -89,6 +90,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
     setData(updated)
     return updated
   }
+  const cloudSync = useCloudSync({ ownerId: account?.id, storageKey, data, save, online, paused: Boolean(editor) })
   function openTransaction(tx?: Transaction) {
     if (!tx && data && !data.accounts.length) {
       navigate('pengaturan')
@@ -143,7 +145,7 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}
           edit={setEditor} save={save} notify={notify} drillDown={drillDown} />}
         {data && route.screen === 'pengaturan' && <Settings data={data} save={save} edit={setEditor} notify={notify} install={startInstall} installed={installed}
-          account={account} storageKey={storageKey} />}
+          account={account} cloudSync={cloudSync} />}
       </main>
       {data && <button className="quick-add" aria-label="Catat transaksi" onClick={() => openTransaction()}><Plus size={23} /></button>}
     </div>

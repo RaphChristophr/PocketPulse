@@ -27,3 +27,10 @@ test('hasil retry dan susunan properti JSONB tidak memicu konflik semu', () => {
   assert.ok(sameLedger(local, reversed))
   assert.equal(syncDirection(local, baseline, { revision: 'C', ledger: reversed }), 'aligned')
 })
+
+test('sync status counts inserted, removed, and edited transactions', async () => {
+  const { changedTransactions } = await import('../src/domain/sync.ts')
+  const edited = { ...initial, transactions: initial.transactions.slice(1).map((item, index) => index === 0 ? { ...item, note: 'Edited' } : item) }
+  assert.equal(changedTransactions(initial, edited), 2)
+  assert.equal(changedTransactions(initial, initial), 0)
+})
