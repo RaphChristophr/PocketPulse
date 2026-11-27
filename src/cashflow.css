@@ -97,6 +97,7 @@
   background: var(--accent-light);
   color: var(--accent-deep);
 }
+.cashflow-totals > .cashflow-expenses { background: var(--soft-red); color: var(--tone-red); }
 .cashflow-totals span { font-size: .83rem; }
 .cashflow-totals strong { grid-column: 1 / -1; font-size: 1.14rem; overflow-wrap: anywhere; }
 .cashflow-categories-heading { align-items: center; margin-bottom: 8px; }

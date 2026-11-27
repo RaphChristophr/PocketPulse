@@ -70,7 +70,7 @@ export function Cashflow({ data, day, month, setMonth, drillDown }: {
     </section>
     <div className="cashflow-totals">
       <div><ArrowDownLeft size={18} aria-hidden="true" /><span>{t("Pemasukan")}</span><strong>{rupiah(selected.income)}</strong></div>
-      <div><ArrowUpRight size={18} aria-hidden="true" /><span>{t("Pengeluaran")}</span><strong>{rupiah(selected.expense)}</strong></div>
+      <div className="cashflow-expenses"><ArrowUpRight size={18} aria-hidden="true" /><span>{t("Pengeluaran")}</span><strong>{rupiah(selected.expense)}</strong></div>
     </div>
     <section aria-labelledby="cashflow-categories-heading">
       <div className="panel-heading cashflow-categories-heading">

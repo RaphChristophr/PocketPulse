@@ -4,6 +4,10 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Warna kartu Pengeluaran di Cashflow
+
+- Bedakan kartu Pengeluaran dengan ikon dan nominal merah serta latar merah muda. Build, 18 tes, dan cek warna di browser HP lulus. Siap dikirim bersama pembaruan berikutnya.
+
 ### 27 November 2026 — Navigasi HP mengambang
 
 - Jadikan navigasi bawah pil hijau gelap. Sorot ikon menu aktif, tampilkan namanya saat ruang cukup, dan letakkan tombol **+** di samping pil.
