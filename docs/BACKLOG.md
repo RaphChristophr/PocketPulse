@@ -2,20 +2,19 @@
 
 ## Menu Cashflow dan hitung mundur gajian
 
-**Status** — Cashflow tersedia di `dev`. Pembaruan warna kartu disiapkan secara lokal.
+**Status** — Cashflow dan Insight sudah digabung secara lokal. Push menunggu pengiriman bersama pembaruan berikutnya.
 
 - Tambahkan menu **Cashflow** dengan grafik batang yang bisa dipilih, arus kas bersih, total pemasukan dan pengeluaran, serta rincian kategori yang membuka Riwayat.
 - Gunakan merah untuk kartu Pengeluaran agar mudah dibedakan dari Pemasukan.
-- Gunakan bulan kalender untuk Cashflow. **To payday** menghitung sisa hari ke tanggal 25 berdasarkan hari ini di WIB.
+- Gabungkan tren Insight ke Cashflow. Pakai periode gajian 25–24 sebagai default dan sediakan pilihan Minggu ini serta Bulan kalender. **To payday** menghitung sisa hari ke tanggal 25 berdasarkan hari ini di WIB.
 
-## Layout mobile untuk Ringkasan, Insight, dan Catat transaksi
+## Layout mobile untuk Ringkasan dan Catat transaksi
 
 **Status** — Diimplementasikan. Tampilan HP dan pencatatan pengeluaran diuji di browser dengan data contoh.
 
 - **Ringkasan.** Tonjolkan saldo tersedia di header hijau. Tampilkan total saldo dan saldo tabungan serta dana darurat secara terpisah. Pindahkan pilihan periode dan progres budget ke bagian grafik pengeluaran, diikuti kartu kategori dan transaksi terbaru. Sediakan akses ke Riwayat lengkap dari daftar transaksi terbaru.
-- **Insight.** Sediakan layar untuk melihat tren pengeluaran berdasarkan periode, rincian pengeluaran per kategori, dan progres budget. Gunakan Rupiah dan pilihan periode PocketPulse, termasuk periode gajian tanggal 25–24.
 - **Catat transaksi.** Letakkan input nominal berukuran besar di bagian atas. Tampilkan kategori pengeluaran sebagai kisi ikon, lalu letakkan tanggal, sumber dana, dan catatan di bawahnya. Buat tombol Simpan mudah dijangkau dan pastikan alur pemasukan serta transfer tetap bisa diakses dari form.
-- **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Insight, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif dan tempatkan tombol **+** di sampingnya untuk membuka Catat transaksi. Gunakan ikon dengan nama aksesibel dan tampilkan nama menu aktif saat ruang cukup.
+- **Navigasi mobile.** Tampilkan Ringkasan, Cashflow, Budget, dan Pengaturan dalam pil mengambang. Sorot menu aktif dan tempatkan tombol **+** di sampingnya untuk membuka Catat transaksi. Gunakan ikon dengan nama aksesibel dan tampilkan nama menu aktif saat ruang cukup.
 
 ## Pengingat mencatat transaksi setiap malam
 

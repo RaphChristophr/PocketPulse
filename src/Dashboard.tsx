@@ -105,7 +105,7 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
         </div>
       </section>
       <section className="home-categories">
-        <div className="panel-heading"><h2>{t("Kategori")}</h2><a className="text-button" href="#insight">{t("Lihat semua")}</a></div>
+        <div className="panel-heading"><h2>{t("Kategori")}</h2><a className="text-button" href={`#cashflow?tanggal=${period}`}>{t("Lihat semua")}</a></div>
         {categories.length ? <div className="category-cards">{categories.map(({ category, spent, budget }) =>
           <button type="button" className="panel category-card" key={category.id} onClick={() => drillDown(category.id, period, end)}>
             <span>{category.name}</span><strong>{rupiah(spent)}</strong>
@@ -141,81 +141,5 @@ export function Dashboard({ data, day, period, setPeriod, drillDown, openTransac
         </div>}
       </section>
     </div>
-  </div>
-}
-
-const insightRanges = { week: 'Minggu ini', period: 'Periode gajian', quarter: '3 periode', year: '12 periode' } as const
-type InsightRange = keyof typeof insightRanges
-
-function insightPoints(data: Ledger, day: string, period: string, range: InsightRange) {
-  const months = range === 'year' ? 12 : range === 'quarter' ? 3 : 1
-  const start = range === 'week' ? weekStart(day) : addMonths(period, 1 - months)
-  const end = range === 'week' ? addDays(start, 6) : periodEnd(period)
-  const previousStart = range === 'week' ? addDays(start, -7) : addMonths(start, -months)
-  const previousEnd = addDays(start, -1)
-  const dates = spendingDays(data.transactions, start, day < end ? day : end)
-  const previous = spendingDays(data.transactions, previousStart, previousEnd)
-  if (months === 1) {
-    const points = dates.map(({ date, spent }) => ({ start: date, end: date, spent }))
-    return { start, end, points, comparison: points.map((_, index) => previous[index]?.spent ?? 0) }
-  }
-  const points = []
-  const comparison = []
-  for (let index = 0; index < months; index += 1) {
-    const from = addMonths(start, index)
-    const to = periodEnd(from)
-    const days = dates.filter(item => inRange(item.date, from, to))
-    if (!days.length) break
-    const priorPeriod = addMonths(previousStart, index)
-    const priorDays = previous.filter(item => inRange(item.date, priorPeriod, periodEnd(priorPeriod)))
-    points.push({ start: from, end: days.at(-1)!.date, spent: sum(days.map(item => item.spent)) })
-    comparison.push(sum((day < to ? priorDays.slice(0, days.length) : priorDays).map(item => item.spent)))
-  }
-  return { start, end, points, comparison }
-}
-
-export function Insight({ data, day, period, setPeriod, drillDown }: SpendingProps) {
-  const [range, setRange] = useState<InsightRange>('period')
-  const { start, end, points, comparison } = insightPoints(data, day, period, range)
-  const total = sum(points.map(point => point.spent))
-  const previous = sum(comparison)
-  const change = previous > 0 ? Math.round((total - previous) / previous * 100) : null
-  const categories = spendingCategories(data, start, day < end ? day : end).filter(item => item.spent > 0)
-  const limits = budgetRows(data, period)
-  return <div className="spending-insight">
-    <div className="insight-title"><h1>Insight</h1><p>{t("Tren pengeluaran dan budget")}</p></div>
-    <div className="segmented insight-ranges" role="group" aria-label={t("Periode pengeluaran")}>
-      {Object.entries(insightRanges).map(([key, label]) =>
-        <button key={key} type="button" aria-pressed={key === range} onClick={() => setRange(key as InsightRange)}>{t(label)}</button>)}
-    </div>
-    {range !== 'week' && <PeriodControl period={period} setPeriod={setPeriod} />}
-    <section className="panel insight-trend">
-      <h2 className="insight-total">{rupiah(total)}</h2>
-      <div className="insight-range-label"><span>{rangeLabel(start, end)}</span>
-        {change !== null && <span className="insight-change" data-increase={change > 0}
-          title={t("Dibanding periode sebelumnya")}>{change > 0 ? '+' : ''}{formatPercent(change)} {t("vs sebelumnya")}</span>}</div>
-      {points.length > 0 ? <SpendingChart key={`${range}:${start}`} points={points} comparison={previous > 0 ? comparison : undefined} drillDown={drillDown} />
-        : <Empty>{t("Belum ada pengeluaran di periode ini.")}</Empty>}
-    </section>
-    <section className="panel insight-breakdown">
-      <h2>{t("Rincian kategori")}</h2>
-      {categories.length ? categories.map(({ category, spent }) =>
-        <button className="insight-line" type="button" key={category.id} onClick={() => drillDown(category.id, start, end)}>
-          <Glyph item={category} size={20} /><span>{category.name}</span>
-          <CategoryProgress value={percent(spent, categories[0].spent)} color={category.colorKey} /><strong>{rupiah(spent)}</strong>
-        </button>) : <Empty>{t("Belum ada pengeluaran di periode ini.")}</Empty>}
-    </section>
-    <section className="insight-goals">
-      <div className="panel-heading"><div><h2>{t("Target budget")}</h2><p>{rangeLabel(period, periodEnd(period))}</p></div><a className="text-button" href="#budget">{t("Lihat budget")}</a></div>
-      <div className="panel">{limits.length ? limits.map(row => {
-        const category = data.categories.find(item => item.id === row.categoryId)
-        if (!category) return null
-        return <button className="insight-goal" type="button" key={row.categoryId} onClick={() => drillDown(row.categoryId, period, periodEnd(period))}>
-          <Glyph item={category} size={20} /><span>{category.name}</span>
-          <strong>{rupiah(row.spent)} <small>/ {rupiah(row.limitIdr)}</small></strong>
-          <CategoryProgress value={percent(row.spent, row.limitIdr)} color={category.colorKey} />
-        </button>
-      }) : <Empty>{t("Budget belum diatur")}</Empty>}</div>
-    </section>
   </div>
 }

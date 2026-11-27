@@ -24,7 +24,7 @@ Saat membuat atau mengedit kategori atau sumber dana, pengguna bisa memilih ikon
 
 ## Cashflow
 
-Cashflow punya menu sendiri. Pilih bulan untuk melihat grafik pengeluaran, total pemasukan dan pengeluaran, arus kas bersih, dan bagian pengeluaran tiap kategori. Ketuk kategori untuk membuka transaksi pada bulan itu. Cashflow memakai bulan kalender, dari tanggal 1 sampai hari terakhir bulan tersebut. Jadwal Budget mengikuti periode gajian 25–24.
+Cashflow menggabungkan ringkasan arus kas dan tren pengeluaran. Rekap dibuka pada periode gajian 25–24 agar selaras dengan Budget. Pilih **Minggu ini** (Senin–Minggu) untuk grafik harian, atau **Bulan kalender** untuk rekap tanggal 1 hingga akhir bulan. Pilihan periode berlaku pada pemasukan, pengeluaran, arus kas bersih, dan rincian kategori. Ketuk kategori untuk membuka transaksi pada periode tersebut. Pengaturan limit tetap tersedia di menu Budget.
 
 **To payday** menampilkan progres, sisa hari, dan tanggal gajian berdasarkan hari ini di WIB. Jadwalnya tanggal 25 setiap bulan. Pada tanggal 25 tampilkan **Gajian hari ini**.
 

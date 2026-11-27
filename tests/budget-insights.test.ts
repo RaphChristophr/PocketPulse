@@ -4,7 +4,7 @@ import { balanceFor, validateLedger, type Transaction } from '../src/domain/fina
 import { demoLedger } from '../src/domain/demo.ts'
 import { titheAllocations, titheCategory } from '../src/domain/tithe.ts'
 import { spendingDays } from '../src/domain/spending.ts'
-import { cashflowMonths, monthEnd, paydayProgress } from '../src/domain/cashflow.ts'
+import { cashflowPeriods, cashflowTrend, monthEnd, paydayProgress } from '../src/domain/cashflow.ts'
 
 test('Tithe allocation leaves balances alone, and linked payments reconcile', () => {
   const data = demoLedger('2026-12-01')
@@ -42,11 +42,35 @@ test('Cashflow groups by calendar month across payday, leap day, and year bounda
   )
   assert.equal(monthEnd('2024-02-01'), '2024-02-29')
   assert.equal(monthEnd('2026-12-01'), '2026-12-31')
-  assert.deepEqual(cashflowMonths(data.transactions, '2024-03-01').slice(-4), [
+  assert.deepEqual(cashflowTrend(data.transactions, '2024-03-01', 'bulan').slice(-4), [
     { start: '2023-12-01', income: 0, expense: 30_000 },
     { start: '2024-01-01', income: 0, expense: 0 },
     { start: '2024-02-01', income: 3_250_000, expense: 485_000 },
     { start: '2024-03-01', income: 0, expense: 20_000 },
+  ])
+})
+
+test('Cashflow separates payday periods and groups a Monday–Sunday week by day', () => {
+  const data = demoLedger('2026-12-01')
+  const expense = data.transactions.find(tx => tx.type === 'expense')!
+  data.transactions.push(
+    { ...expense, id: 'cutoff', date: '2026-11-24', amountIdr: 10_000 },
+    { ...expense, id: 'last-day', date: '2026-12-24', amountIdr: 20_000 },
+    { ...expense, id: 'new-payday', date: '2026-12-25', amountIdr: 30_000 },
+  )
+  assert.equal(cashflowPeriods.gajian.end('2026-11-25'), '2026-12-24')
+  assert.deepEqual(cashflowTrend(data.transactions, '2026-12-25', 'gajian').slice(-3), [
+    { start: '2026-10-25', income: 0, expense: 10_000 },
+    { start: '2026-11-25', income: 3_250_000, expense: 495_000 },
+    { start: '2026-12-25', income: 0, expense: 30_000 },
+  ])
+  const weekly = cashflowPeriods.minggu
+  const start = weekly.start('2026-12-01')
+  assert.equal(start, '2026-11-30')
+  assert.equal(weekly.end(start), '2026-12-06')
+  assert.deepEqual(cashflowTrend(data.transactions, start, 'minggu').slice(0, 2), [
+    { start: '2026-11-30', income: 0, expense: 215_000 },
+    { start: '2026-12-01', income: 0, expense: 85_000 },
   ])
 })
 

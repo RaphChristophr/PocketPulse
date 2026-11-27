@@ -1,7 +1,7 @@
 import { t } from './domain/language.ts'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Activity, ArrowLeftRight, ChartNoAxesColumn, ChartPie, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings as SettingsIcon, Wallet, X } from 'lucide-react'
-import { Dashboard, Insight } from './Dashboard'
+import { Activity, ArrowLeftRight, ChartNoAxesColumn, ChevronRight, CircleCheck, CloudOff, House, Plus, Settings as SettingsIcon, Wallet, X } from 'lucide-react'
+import { Dashboard } from './Dashboard'
 import { Cashflow } from './Cashflow'
 import { EditorDialog, type Change, type Editor } from './Editors'
 import { Budgets, History, Settings } from './Pages'
@@ -15,7 +15,6 @@ import { useCloudSync } from './useCloudSync'
 const routes = [
   { id: 'ringkasan', name: 'Ringkasan', icon: House },
   { id: 'cashflow', name: 'Cashflow', icon: ChartNoAxesColumn },
-  { id: 'insight', name: 'Insight', icon: ChartPie },
   { id: 'budget', name: 'Budget', icon: Wallet },
   { id: 'pengaturan', name: 'Pengaturan', icon: SettingsIcon },
   { id: 'riwayat', name: 'Riwayat', icon: ArrowLeftRight },
@@ -23,7 +22,8 @@ const routes = [
 
 function getRoute() {
   const [path = '', search = ''] = window.location.hash.slice(1).split('?')
-  return { screen: routes.find(item => item.id === path)?.id ?? 'ringkasan', filters: new URLSearchParams(search) }
+  const screen = path === 'insight' ? 'cashflow' : routes.find(item => item.id === path)?.id ?? 'ringkasan'
+  return { screen, filters: new URLSearchParams(search) }
 }
 
 export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
@@ -167,9 +167,12 @@ export function App({ account, pwa }: { account?: CloudAccount; pwa: Pwa }) {
           {storageError && <button className="button secondary" onClick={() => window.location.reload()}>{t("Coba lagi")}</button>}</section>}
         {data && route.screen === 'ringkasan' && <Dashboard data={data} day={day} period={period} setPeriod={setPeriod}
           initials={account?.email.slice(0, 1).toUpperCase()} reminders={Boolean(account)} openTransaction={openTransaction} drillDown={drillDown} />}
-        {data && route.screen === 'cashflow' && <Cashflow data={data} day={day} month={route.filters.get('bulan')}
-          setMonth={value => navigate(`cashflow?bulan=${value.slice(0, 7)}`)} drillDown={drillDown} />}
-        {data && route.screen === 'insight' && <Insight data={data} day={day} period={period} setPeriod={setPeriod} drillDown={drillDown} />}
+        {data && route.screen === 'cashflow' && <Cashflow data={data} day={day} filters={route.filters}
+          setPeriod={(mode, date) => {
+            const filters = new URLSearchParams({ periode: mode })
+            if (date) filters.set('tanggal', date)
+            navigate(`cashflow?${filters}`)
+          }} drillDown={drillDown} />}
         {data && route.screen === 'riwayat' && <History data={data} filters={route.filters} setFilters={filters => navigate(`riwayat?${filters}`)}
           edit={item => item.kind === 'transaction' && !item.titheIncomeId ? openTransaction(item.item) : setEditor(item)} />}
         {data && route.screen === 'budget' && <Budgets data={data} week={week} period={period} setWeek={setWeek} setPeriod={setPeriod} mode={mode} setMode={setMode}

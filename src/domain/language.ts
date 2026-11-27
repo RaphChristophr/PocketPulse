@@ -75,9 +75,9 @@ Tabungan & dana darurat|Savings & emergency funds
 Disisihkan|Set aside
 Pemasukan|Income
 Pengeluaran|Expenses
-Bulan sebelumnya|Previous month
-Bulan berikutnya|Next month
+Bulan kalender|Calendar month
 Arus kas bersih|Net cash flow
+Pengeluaran per periode gajian|Expenses by pay period
 Pengeluaran per bulan|Monthly expenses
 Pengeluaran per kategori|Expenses by category
 Gajian hari ini|Payday today

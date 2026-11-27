@@ -24,10 +24,15 @@
   flex-wrap: wrap;
 }
 .cashflow-header h1 { font-size: 1.7rem; text-wrap: balance; }
-.cashflow-month { display: flex; align-items: center; gap: 4px; font-size: .83rem; }
-.cashflow-month .icon-button { width: 44px; height: 44px; color: var(--on-dark); background: transparent; }
-.cashflow-month .icon-button:hover { background: var(--cashflow-rule); }
-.cashflow-month .icon-button:disabled { background: transparent; color: var(--dark-muted); opacity: .55; }
+.cashflow-period { display: flex; align-items: center; gap: 4px; font-size: .83rem; }
+.cashflow-period .icon-button { width: 44px; height: 44px; flex: none; color: var(--on-dark); background: transparent; }
+.cashflow-period .icon-button:hover { background: var(--cashflow-rule); }
+.cashflow-period .icon-button:disabled { background: transparent; color: var(--dark-muted); opacity: .55; }
+.cashflow-ranges { flex: 0 0 100%; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 4px; gap: 4px; border-radius: 24px; background: var(--cashflow-rule); }
+.cashflow-ranges button { min-height: 44px; padding: 4px; border: 0; border-radius: 20px; background: transparent; color: var(--on-dark); font-size: .78rem; }
+.cashflow-ranges button:hover { background: var(--cashflow-rule); }
+.cashflow-ranges button[aria-pressed="true"] { background: var(--accent-bright); color: var(--accent-deep); font-weight: 700; }
+.cashflow-ranges button[aria-pressed="true"]:focus-visible { outline-color: var(--accent-deep); outline-offset: -3px; }
 .cashflow-overview button:focus-visible { outline-color: var(--accent-bright); }
 .cashflow button:not(:disabled):active { transform: translateY(1px); }
 .cashflow-net { display: grid; gap: 4px; margin-block: 12px 16px; }
@@ -70,6 +75,8 @@
 .cashflow-chart button[aria-pressed="true"] .cashflow-bar i { background: var(--accent-bright); }
 .cashflow-tick { padding: 4px; line-height: 1.2; border-radius: 7px; }
 .cashflow-chart button[aria-pressed="true"] .cashflow-tick { color: var(--accent-deep); background: var(--accent-bright); font-weight: 700; }
+.cashflow-day-detail { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 4px; color: var(--dark-muted); font-size: .82rem; }
+.cashflow-day-detail button { color: var(--on-dark); min-height: 44px; }
 .cashflow-payday { display: grid; gap: 8px; border-top: 1px solid var(--cashflow-rule); margin-top: 16px; padding-top: 16px; }
 .cashflow-payday strong { color: var(--accent-bright); }
 .cashflow-payday > .cashflow-payday-progress { display: grid; grid-template-columns: minmax(0, 1fr) auto; font-size: .79rem; }

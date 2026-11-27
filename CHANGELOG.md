@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Gabungkan Insight ke Cashflow
+
+- Satukan ringkasan arus kas, grafik pengeluaran, dan rincian kategori di Cashflow. Pakai periode gajian 25–24 sebagai default, dengan pilihan Minggu ini dan Bulan kalender. Tautan Insight lama membuka Cashflow dan pengaturan limit tetap di Budget.
+- Build dan 19 tes lulus. Uji browser mencakup tiga periode, filter Riwayat per hari dan kategori, tautan lama, serta navigasi pada layar 320 piksel. Pembaruan siap dikirim bersama perbaikan berikutnya dan tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Warna kartu Pengeluaran di Cashflow
 
 - Bedakan kartu Pengeluaran dengan ikon dan nominal merah serta latar merah muda. Build, 18 tes, dan cek warna di browser HP lulus. Siap dikirim bersama pembaruan berikutnya.
