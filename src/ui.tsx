@@ -1,10 +1,22 @@
 import { getLanguage, t } from './domain/language.ts'
-import { ArrowLeftRight, Bike, BriefcaseBusiness, Building2, Coffee, CreditCard, Gift, House, PiggyBank, ShoppingBag, Utensils, Wallet, Zap, ChevronDown, Check } from 'lucide-react'
+import {
+  ArrowLeftRight, Bike, BriefcaseBusiness, Building2, BusFront, CarFront, CarTaxiFront, Check, ChevronDown,
+  CircleParking, Coffee, CreditCard, Dumbbell, Film, Fuel, Gift, GraduationCap, HeartPulse, House,
+  PawPrint, PiggyBank, Plane, Ship, Shirt, ShoppingBag, ShoppingCart, TrainFront, Utensils, Wallet, Wifi, Zap,
+  type LucideIcon,
+} from 'lucide-react'
 import { useLayoutEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react'
 import { digitsFromAmount, groupedAmount, type Language } from './domain/amount.ts'
 import type { Account, Category } from './domain/finance.ts'
 
-export const glyphs = { bank: Building2, wallet: Wallet, card: CreditCard, piggy: PiggyBank, meal: Utensils, bike: Bike, bag: ShoppingBag, coffee: Coffee, house: House, briefcase: BriefcaseBusiness, zap: Zap, gift: Gift }
+export const glyphs = {
+  bank: Building2, wallet: Wallet, card: CreditCard, piggy: PiggyBank,
+  meal: Utensils, bag: ShoppingBag, coffee: Coffee, house: House, briefcase: BriefcaseBusiness, zap: Zap, gift: Gift,
+  bike: Bike, train: TrainFront, car: CarFront, bus: BusFront, taxi: CarTaxiFront,
+  plane: Plane, ship: Ship, fuel: Fuel, parking: CircleParking,
+  cart: ShoppingCart, health: HeartPulse, education: GraduationCap, wifi: Wifi,
+  pet: PawPrint, clothing: Shirt, fitness: Dumbbell, film: Film,
+} satisfies Record<Account['iconKey'], LucideIcon>
 export function Glyph({ item, size = 18 }: { item?: Pick<Account | Category, 'iconKey' | 'colorKey'>; size?: number }) {
   const Symbol = item ? glyphs[item.iconKey] : ArrowLeftRight
   return <span className="glyph" data-color={item?.colorKey ?? 'slate'} aria-hidden="true"><Symbol size={size} strokeWidth={1.8} /></span>

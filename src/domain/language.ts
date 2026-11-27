@@ -125,6 +125,19 @@ Contoh: makan siang|Example: lunch
 Ikon|Icon
 Warna|Color
 Pratinjau ikon|Icon preview
+Kereta|Train
+Mobil|Car
+Taksi|Taxi
+Pesawat|Plane
+Kapal|Ship
+Bahan bakar|Fuel
+Parkir|Parking
+Belanja bahan pokok|Groceries
+Kesehatan|Health
+Pendidikan|Education
+Hewan peliharaan|Pets
+Pakaian|Clothing
+Olahraga|Fitness
 Nama sumber dana|Funding account name
 Jenis|Type
 Saldo awal (Rp)|Opening balance (Rp)

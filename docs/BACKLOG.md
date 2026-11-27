@@ -23,6 +23,7 @@
 
 - Ganti dropdown nama ikon dengan kisi ikon yang bisa diketuk di form tambah dan edit **kategori** serta **sumber dana**.
 - Tampilkan ikon yang sedang dipilih dengan penanda yang terlihat. Pilihan warna tetap terpisah dan pratinjau langsung mengikuti kedua pilihan. Beri setiap ikon nama aksesibel untuk pembaca layar.
+- Sediakan ikon transportasi seperti kereta untuk KRL, mobil, bus, dan taksi, serta ikon kebutuhan sehari-hari seperti bahan pokok, kesehatan, dan pendidikan.
 - Saat diimplementasikan, uji pemilihan di HP dan pastikan ikon yang tersimpan tetap terpilih saat form dibuka kembali.
 
 ## Pilihan warna tambahan untuk ikon

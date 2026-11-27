@@ -4,6 +4,11 @@ Riwayat pengembangan PocketPulse, dari ide awal sampai fitur di Vercel Preview. 
 
 ## Unreleased — Dev Preview, calon 0.2.0
 
+### 27 November 2026 — Tambahan ikon kategori dan sumber dana
+
+- Tambahkan 16 ikon, termasuk kereta, mobil, bus, taksi, bahan bakar, parkir, dan kebutuhan harian.
+- Build dan 16 tes lulus. Uji browser mobile mencakup penyimpanan ikon kereta dan mobil, label Inggris, serta pencatatan transaksi dengan 24 kategori. Pembaruan ini tidak memerlukan migrasi Supabase.
+
 ### 27 November 2026 — Kategori pertama dari form transaksi
 
 - Saat daftar kategori pemasukan atau pengeluaran kosong, isi nama kategori langsung di form. Kategori dan transaksi tersimpan bersamaan.

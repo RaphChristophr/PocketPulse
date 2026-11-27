@@ -3,7 +3,14 @@ import { isTitheIncome, titheAllocations, titheAmount, titheCategory } from './t
 
 export const accountTypes = { bank: 'Bank', digital_bank: 'Bank digital', cash: 'Tunai' } as const
 export const colors = { jade: 'Hijau', orange: 'Jingga', blue: 'Biru', violet: 'Ungu', rose: 'Merah muda', slate: 'Abu-abu', red: 'Merah', yellow: 'Kuning', teal: 'Toska', brown: 'Cokelat' } as const
-export const icons = { bank: 'Bank', wallet: 'Dompet', card: 'Kartu', piggy: 'Tabungan', meal: 'Makan', bike: 'Transportasi', bag: 'Belanja', coffee: 'Kopi', house: 'Rumah', briefcase: 'Pekerjaan', zap: 'Tagihan', gift: 'Hadiah' } as const
+export const icons = {
+  bank: 'Bank', wallet: 'Dompet', card: 'Kartu', piggy: 'Tabungan',
+  meal: 'Makan', bag: 'Belanja', coffee: 'Kopi', house: 'Rumah', briefcase: 'Pekerjaan', zap: 'Tagihan', gift: 'Hadiah',
+  bike: 'Transportasi', train: 'Kereta', car: 'Mobil', bus: 'Bus', taxi: 'Taksi',
+  plane: 'Pesawat', ship: 'Kapal', fuel: 'Bahan bakar', parking: 'Parkir',
+  cart: 'Belanja bahan pokok', health: 'Kesehatan', education: 'Pendidikan', wifi: 'Internet',
+  pet: 'Hewan peliharaan', clothing: 'Pakaian', fitness: 'Olahraga', film: 'Film',
+} as const
 export const segments = { weekdays: 'Senin–Jumat', saturday: 'Sabtu', sunday: 'Minggu' } as const
 export const transactionNames = { expense: 'Pengeluaran', income: 'Pemasukan', transfer: 'Transfer' } as const
 type Appearance = { iconKey: keyof typeof icons; colorKey: keyof typeof colors }
